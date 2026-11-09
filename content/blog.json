@@ -137,47 +137,6 @@
           }
         ]
       }
-    },
-    {
-      "slug": "example-post",
-      "date": {
-        "en": "Coming soon",
-        "fr": "Bientôt"
-      },
-      "title": {
-        "en": "Placeholder: your next piece of thought",
-        "fr": "Exemple : votre prochain morceau de pensée"
-      },
-      "tags": [
-        "open source",
-        "learning"
-      ],
-      "excerpt": {
-        "en": "A placeholder entry showing how posts appear: duplicate this object in BLOG_POSTS, give it a slug, tags, and an en/fr body.",
-        "fr": "Un article d'exemple montrant le rendu : dupliquez cet objet dans BLOG_POSTS avec un slug, des tags et un contenu en/fr."
-      },
-      "body": {
-        "en": [
-          {
-            "t": "p",
-            "x": "This is a placeholder post. Duplicate the object in BLOG_POSTS, set a unique slug, choose tags from BLOG_TAGS, and write the body in both languages."
-          },
-          {
-            "t": "p",
-            "x": "For video content: publish the video on PeerTube/YouTube, then create a post like this with a link or embed plus a few paragraphs of context, tagged 'videos'."
-          }
-        ],
-        "fr": [
-          {
-            "t": "p",
-            "x": "Ceci est un article d'exemple. Dupliquez l'objet dans BLOG_POSTS, définissez un slug unique, choisissez des tags dans BLOG_TAGS, et rédigez le contenu dans les deux langues."
-          },
-          {
-            "t": "p",
-            "x": "Pour du contenu vidéo : publiez la vidéo sur PeerTube/YouTube, puis créez un article comme celui-ci avec un lien ou une intégration et quelques paragraphes de contexte, avec le tag « vidéos »."
-          }
-        ]
-      }
     }
   ]
 }
