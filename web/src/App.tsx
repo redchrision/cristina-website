@@ -12,7 +12,7 @@ type Theme = "light" | "dark";
    CRISTINA DELISLE — PORTFOLIO v7 · bilingual EN/FR
    ------------------------------------------------------------
    - Language toggle (top right), default follows the browser.
-   - The unnamed project stays unnamed: a teaser, no name, no repo.
+   - The featured project (current work) gets a highlighted card.
    - Projects, talks and blog posts live in /content/*.json (shared
      with the Rust API). UI strings, About and Legal live below.
      Bilingual fields are objects { en: "...", fr: "..." }.
@@ -25,6 +25,7 @@ const LINKS = {
   github: "https://github.com/redchrision",
   linkedin: "https://www.linkedin.com/in/cristina-delisle-10848029/",
   mastodon: "https://mastodon.social/@redchrision",
+  ellestime: "https://www.ellestime.fr/",
   email: "cristina@cjdns.fr",
 };
 
@@ -43,15 +44,15 @@ const UI = {
     seeMoreProjects: (n: number) => `See ${n} more project${n > 1 ? "s" : ""}`,
     seeFewerProjects: "See fewer projects",
     inviteTitle: "Invite me to speak", inviteTopics: "Topics I speak about:", inviteBtn: "Invite me ↗", inviteSubject: "Speaking invitation",
-    mentorTitle: "One hour, every three months: for women in tech",
-    mentorIntro: "As a Women Techmakers Ambassador (Paris) and a Technovation Girls judge, I keep a mentorship hour: one woman in tech, once per quarter, free. Wherever you are on the road, it works best with something concrete on the table:",
+    mentorTitle: "One hour, every three months: for women and underrepresented people in tech",
+    mentorIntro: ["As a Women Techmakers Ambassador and a mentor with ", "ElleStime", ", I keep a mentorship hour: one person, once per quarter, free. It is reserved for women and people from underrepresented groups in tech. Wherever you are on the road, it works best with something concrete on the table:"],
     mentorItems: [
       "New to tech or in a career transition: we review your CV, portfolio, or learning plan",
       "Building something: I review your project, code, or open-source repo",
       "Senior and wanting a second opinion: architecture, positioning, speaking, the next move",
     ],
     mentorApply: ["To apply, email me with ", "something to review", " (a repo link, a CV, a deck), plus a couple of lines about what you'd like to get out of the hour."],
-    mentorNote: "If the quarter's slot is taken, I'll tell you when the next one opens. Not a woman in tech? My inbox is still open; this hour is just reserved.",
+    mentorNote: "If the quarter's slot is taken, I'll tell you when the next one opens. Not in one of these groups? My inbox is still open; this hour is just reserved.",
     mentorSubject: "Mentorship request",
     contactIntro: ["For opportunities, speaking invitations, project collaborations, or anything open source, write to me below, or directly at "],
     fName: "Name", fEmail: "Email", fMsg: "Message",
@@ -83,15 +84,15 @@ const UI = {
     seeMoreProjects: (n: number) => `Voir ${n} projet${n > 1 ? "s" : ""} de plus`,
     seeFewerProjects: "Voir moins de projets",
     inviteTitle: "Invitez-moi à intervenir", inviteTopics: "Sujets sur lesquels j'interviens :", inviteBtn: "M'inviter ↗", inviteSubject: "Invitation à une conférence",
-    mentorTitle: "Une heure par trimestre : pour les femmes dans la tech",
-    mentorIntro: "Ambassadrice Women Techmakers (Paris) et jurée du concours Technovation Girls, je réserve une heure de mentorat par trimestre : une femme dans la tech à la fois, gratuitement. Où que vous en soyez, cela fonctionne mieux avec quelque chose de concret sur la table :",
+    mentorTitle: "Une heure par trimestre : pour les femmes et les personnes sous-représentées dans la tech",
+    mentorIntro: ["Ambassadrice Women Techmakers et mentore chez ", "ElleStime", ", je réserve une heure de mentorat par trimestre : une personne à la fois, gratuitement. Elle est destinée aux femmes et aux personnes issues de groupes sous-représentés dans la tech. Où que vous en soyez, cela fonctionne mieux avec quelque chose de concret sur la table :"],
     mentorItems: [
       "Nouvelle dans la tech ou en reconversion : on relit votre CV, votre portfolio ou votre plan d'apprentissage",
       "En train de construire : je relis votre projet, votre code ou votre dépôt open source",
       "Senior avec l'envie d'un second avis : architecture, positionnement, conférences, prochaine étape",
     ],
     mentorApply: ["Pour en profiter, écrivez-moi avec ", "quelque chose à relire", " (un dépôt, un CV, des slides) et quelques lignes sur ce que vous aimeriez retirer de cette heure."],
-    mentorNote: "Si le créneau du trimestre est déjà pris, je vous dirai quand le prochain se libère. Pas une femme dans la tech ? Ma boîte mail reste ouverte ; cette heure est simplement réservée.",
+    mentorNote: "Si le créneau du trimestre est déjà pris, je vous dirai quand le prochain se libère. Vous ne faites pas partie de ces groupes ? Ma boîte mail reste ouverte ; cette heure est simplement réservée.",
     mentorSubject: "Demande de mentorat",
     contactIntro: ["Pour des opportunités, des invitations à intervenir, des collaborations ou tout ce qui touche à l'open source, écrivez-moi ci-dessous, ou directement à "],
     fName: "Nom", fEmail: "E-mail", fMsg: "Message",
@@ -121,16 +122,16 @@ interface PageProps extends UIProps { lang: Lang }
 const ABOUT = {
   en: [
     [
-      "I'm a software engineer working in R&D at CJDNS, focused on ",
-      { hl: "AI tooling people can inspect, self-host, and trust" },
-      ". Right now I'm building something new: an open-source tool for professionals who can't send their documents to a cloud API.",
+      "I'm a software engineer in R&D at CJDNS. I build ",
+      { hl: "full-stack products and backend services" },
+      ", from APIs and data pipelines to the interfaces people use every day, with a focus on ",
+      { hl: "AI tools people can inspect, self-host, and trust" },
+      ". Right now I'm building ", { hl: "Calvad" }, ", an open-source tool that extracts information from documents with AI, checks every answer against its source, and runs entirely on your own hardware.",
     ],
     [
-      "My day-to-day spans ",
-      { hl: "Python and LLM pipelines" },
-      " at the core of what I build, ",
-      { hl: "React, TypeScript and JavaScript" },
-      " on the frontend, and the product thinking in between. I trained in computer science at ",
+      "I enjoy the whole path from idea to production: understanding the problem, designing the system, shipping it, and checking how it holds up in real use. Before engineering I studied law and worked as a ",
+      { hl: "Data Protection Officer" },
+      ", so privacy and security are part of how I design, not an afterthought. I trained in computer science at ",
       { hl: "Georgia Tech (MSc, specialised in AI)" },
       " and the University of London (BSc).",
     ],
@@ -145,16 +146,16 @@ const ABOUT = {
   ],
   fr: [
     [
-      "Je suis ingénieure logiciel en R&D chez CJDNS, spécialisée dans les ",
+      "Je suis ingénieure logiciel en R&D chez CJDNS. Je construis des ",
+      { hl: "produits full stack et des services backend" },
+      ", des API et pipelines de données jusqu'aux interfaces utilisées au quotidien, avec une attention particulière aux ",
       { hl: "outils d'IA que l'on peut inspecter, auto-héberger, et auxquels on peut faire confiance" },
-      ". En ce moment, je construis quelque chose de nouveau : un outil open source pour les professionnels qui ne peuvent pas envoyer leurs documents vers une API cloud.",
+      ". En ce moment, je construis ", { hl: "Calvad" }, ", un outil open source qui extrait des informations de documents grâce à l'IA, vérifie chaque réponse dans sa source, et tourne entièrement sur votre propre matériel.",
     ],
     [
-      "Mon quotidien : ",
-      { hl: "Python et pipelines LLM" },
-      " au cœur de ce que je construis, ",
-      { hl: "React, TypeScript et JavaScript" },
-      " côté frontend, et la réflexion produit entre les deux. Je me suis formée en informatique à ",
+      "J'aime tout le chemin de l'idée à la production : comprendre le problème, concevoir le système, le livrer, et vérifier qu'il tient en conditions réelles. Avant l'ingénierie, j'ai étudié le droit et travaillé comme ",
+      { hl: "déléguée à la protection des données (DPO)" },
+      " : la vie privée et la sécurité font partie de ma façon de concevoir, dès le départ. Je me suis formée en informatique à ",
       { hl: "Georgia Tech (MSc, spécialisé en IA)" },
       " et à l'Université de Londres (BSc).",
     ],
@@ -193,7 +194,7 @@ const css = `
 .site[data-theme="light"] .silk-vignette {
   background: radial-gradient(1200px 800px at 22% 18%, rgba(247,244,250,0.5), transparent 70%), linear-gradient(180deg, rgba(247,244,250,0.3), rgba(247,244,250,0.7));
 }
-.site[data-theme="light"] .card.mystery {
+.site[data-theme="light"] .card.featured {
   border-color: rgba(166,121,31,0.45); background: rgba(166,121,31,0.05);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -332,11 +333,11 @@ a.inline:hover { color: var(--wisteria-strong); border-color: var(--wisteria-str
 .show-earlier:hover::before { width: 56px; background: var(--gold); }
 @media (max-width: 1024px) { .show-earlier { margin-left: 0; } }
 
-.card.mystery { border: 1px dashed rgba(232,192,125,0.4); background: rgba(232,192,125,0.04); }
-.card.mystery .aside { color: var(--gold); }
-.card.mystery h3::after { content: " ✦"; color: var(--gold); }
+.card.featured { border: 1px dashed rgba(232,192,125,0.4); background: rgba(232,192,125,0.04); }
+.card.featured .aside { color: var(--gold); }
+.card.featured h3::after { content: " ✦"; color: var(--gold); }
 @keyframes glowpulse { 0%,100% { box-shadow: 0 0 0 rgba(232,192,125,0); } 50% { box-shadow: 0 0 28px -8px rgba(232,192,125,0.35); } }
-.card.mystery { animation: glowpulse 4.5s ease-in-out infinite; }
+.card.featured { animation: glowpulse 4.5s ease-in-out infinite; }
 
 .mentor-card { position: relative; border-radius: 18px; padding: 1px; overflow: hidden;
   background: linear-gradient(120deg, rgba(232,192,125,0.55), rgba(185,156,232,0.15) 45%, rgba(185,156,232,0.4)); }
@@ -420,11 +421,11 @@ a.inline:hover { color: var(--wisteria-strong); border-color: var(--wisteria-str
   .content { padding-top: 0; }
   .card { grid-template-columns: 1fr; gap: 8px; padding: 20px 0; }
   .card:hover { background: transparent; border-color: transparent; transform: none; }
-  .card.mystery { padding: 20px; }
+  .card.featured { padding: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .portrait-wrap, .portrait-ring, .portrait-ring-glow, .avail .dot, .card.mystery { animation: none; }
+  .portrait-wrap, .portrait-ring, .portrait-ring-glow, .avail .dot, .card.featured { animation: none; }
   .sidebar h1 a { animation: none; }
   [class] { transition: none !important; }
   .hover-list:hover > * { opacity: 1; }
@@ -729,7 +730,7 @@ function Projects({ lang, ui }: PageProps) {
       <h2 className="sec-title">{ui.secProjects}</h2>
       <div className="hover-list">
         {visible.map((p, idx) => (
-          <article className={`card ${p.mystery ? "mystery" : ""}`} key={idx}>
+          <article className={`card ${p.featured ? "featured" : ""}`} key={idx}>
             <span className="aside">{t(p.tags[0], lang)}</span>
             <div>
               <h3>{t(p.name, lang)}</h3>
@@ -824,7 +825,11 @@ function Mentorship({ ui }: UIProps) {
       <div className="mentor-card">
         <div className="mentor-inner">
           <h3>{ui.mentorTitle}</h3>
-          <p>{ui.mentorIntro}</p>
+          <p>
+            {ui.mentorIntro[0]}
+            <a className="inline" href={LINKS.ellestime} target="_blank" rel="noopener noreferrer">{ui.mentorIntro[1]}</a>
+            {ui.mentorIntro[2]}
+          </p>
           <ul>{ui.mentorItems.map((m) => <li key={m}>{m}</li>)}</ul>
           <p style={{ marginTop: 14 }}>
             {ui.mentorApply[0]}<span className="hl">{ui.mentorApply[1]}</span>{ui.mentorApply[2]}

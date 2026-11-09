@@ -20,7 +20,8 @@ export interface ProjectLink {
 }
 
 export interface Project {
-  mystery?: boolean;
+  /** Highlighted card for the current main project. */
+  featured?: boolean;
   name: Bi;
   role: Bi;
   blurb: Bi;

@@ -1,30 +1,27 @@
 [
   {
-    "mystery": true,
-    "name": {
-      "en": "Something is brewing",
-      "fr": "Quelque chose se prépare"
-    },
+    "featured": true,
+    "name": "Calvad",
     "role": {
-      "en": "In the lab · Open source",
-      "fr": "Au labo · Open source"
+      "en": "Open source · Research prototype · In active development",
+      "fr": "Open source · Prototype de recherche · En développement actif"
     },
     "blurb": {
-      "en": "A new open-source tool for professionals bound by confidentiality, built to run entirely on your own hardware. No name, no repo, no screenshots yet. The reveal comes when it's ready.",
-      "fr": "Un nouvel outil open source pour les professions soumises au secret professionnel, conçu pour tourner entièrement sur votre propre matériel. Pas de nom, pas de dépôt, pas de captures d'écran pour l'instant. Tout sera dévoilé quand ce sera prêt."
+      "en": "Traceable, AI-assisted evidence extraction from scientific papers. The AI only proposes answers: Calvad checks that every quoted passage really exists in the source document, validates it, and leaves the final decision to a human reviewer. Runs entirely on your own machine.",
+      "fr": "Extraction d'informations assistée par IA et traçable, à partir d'articles scientifiques. L'IA se contente de proposer des réponses : Calvad vérifie que chaque passage cité existe réellement dans le document source, le valide, et laisse la décision finale à une relectrice ou un relecteur humain. Tourne entièrement sur votre propre machine."
     },
     "tags": [
       "Open source",
       "AI",
-      {
-        "en": "Self-hosted",
-        "fr": "Auto-hébergé"
-      }
+      "Full stack"
     ],
     "links": [
       {
-        "label": "Mastodon ↗",
-        "href": "https://mastodon.social/@redchrision"
+        "label": {
+          "en": "Repository ↗",
+          "fr": "Dépôt ↗"
+        },
+        "href": "https://github.com/redchrision/calvad"
       },
       {
         "label": {

@@ -1,14 +1,18 @@
 {
   "en": [
-    "Self-hosting AI in Europe (privacy, GDPR, sovereignty)",
-    "Trustworthy, verifiable AI",
+    "Building AI tools people can trust: provenance, verification, human review",
+    "Privacy by design: GDPR for engineers, from a former DPO",
+    "Self-hosting and digital sovereignty in Europe",
     "Open source: communities, contribution, sustainability",
-    "Benchmarking human vs. agentic reasoning"
+    "Career changes into tech: from law to software engineering",
+    "Women and underrepresented groups in tech"
   ],
   "fr": [
-    "Auto-héberger l'IA en Europe (vie privée, RGPD, souveraineté)",
-    "Une IA digne de confiance et vérifiable",
+    "Construire des outils d'IA dignes de confiance : traçabilité, vérification, relecture humaine",
+    "La protection des données dès la conception : le RGPD pour les développeurs, par une ancienne DPO",
+    "Auto-hébergement et souveraineté numérique en Europe",
     "Open source : communautés, contribution, pérennité",
-    "Comparer le raisonnement humain et celui des agents"
+    "Se reconvertir dans la tech : du droit à l'ingénierie logicielle",
+    "Les femmes et les groupes sous-représentés dans la tech"
   ]
 }

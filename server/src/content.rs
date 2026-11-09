@@ -49,9 +49,9 @@ pub struct ProjectLink {
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, JsonSchema)]
 pub struct Project {
-    /// The unannounced project: shown as a teaser, without a name or repo.
+    /// Highlighted on the site: the current main project.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub mystery: bool,
+    pub featured: bool,
     pub name: Bi,
     pub role: Bi,
     pub blurb: Bi,
@@ -204,8 +204,8 @@ mod tests {
     #[test]
     fn localization_flattens_bilingual_fields() {
         let fr = projects(Some(Lang::Fr));
-        assert!(matches!(fr[0].name, Bi::Plain(_)));
+        assert!(matches!(fr[0].role, Bi::Plain(_)));
         let raw = projects(None);
-        assert!(matches!(raw[0].name, Bi::Localized { .. }));
+        assert!(matches!(raw[0].role, Bi::Localized { .. }));
     }
 }
