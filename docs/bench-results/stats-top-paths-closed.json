@@ -1,0 +1,22 @@
+{
+  "concurrency": 16,
+  "duration_s": 15,
+  "events_per_request": 0,
+  "events_per_s": 0.0,
+  "latency_ms": {
+    "max": 72.191,
+    "p50": 18.223,
+    "p90": 27.583,
+    "p99": 41.535,
+    "p999": 66.815
+  },
+  "mode": "closed-loop",
+  "ok_rps": 839.0,
+  "requests": 12578,
+  "rps": 839.0,
+  "status": {
+    "200": 12578
+  },
+  "target_rps": null,
+  "url": "http://127.0.0.1:8080/v1/stats/top-paths?days=30"
+}

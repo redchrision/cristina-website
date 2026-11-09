@@ -1,53 +1,107 @@
-# Cristina DeLisle — Portfolio
+# cristinadelisle.xyz
 
-A single-page React portfolio built with Vite. Dark aubergine theme with a
-generative "silk flow field" background, animated portrait ring, scrollspy
-sidebar navigation, projects, talks, writing, booking and an accessible
-contact form.
+My personal site, plus the backend behind it: a Rust service that serves the
+site, exposes a versioned public API and an MCP server for AI agents, and
+ingests privacy-preserving analytics events into ClickHouse.
+
+```text
+                     ┌──────────────────────── site-server (Rust · Axum · Tokio) ─────────────────────────┐
+ browser ──HTTPS──►  │  /            React + TypeScript site (static, CSP, immutable asset caching)        │
+ Cloudflare          │  /api/contact contact form ─► validation, honeypot, per-IP limit ─► SQLite          │
+                     │  /v1/*        public API ─┐                                                         │
+ API clients ──────► │  /mcp         MCP tools ──┴► auth (scoped keys) ─► token bucket ─► daily quota      │
+ Claude Code ──────► │                               │                                                     │
+                     │                               ├─ content (embedded /content/*.json)                 │
+                     │                               ├─ events ─► bounded queue ─► batch writer ──────────►│──► ClickHouse
+                     │                               └─ stats  ◄── events_daily rollup (materialized view) ◄│    (MergeTree +
+                     │  :9090/metrics  Prometheus/OpenMetrics · OTLP traces · JSON logs                    │     SummingMergeTree)
+                     └────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Numbers** (release build, 4 shared vCPUs, details in
+[docs/BENCHMARKS.md](docs/BENCHMARKS.md)): **250 000 events/s** ingested at
+**p99 7.1 ms** with zero loss; 40 000 req/s on content reads at p99 3.5 ms;
+explicit `503` load shedding instead of unbounded memory under overload.
+
+## Repository layout
+
+| Path | What |
+|---|---|
+| [`web/`](web/) | The site: React 18 + TypeScript (strict) + Vite |
+| [`content/`](content/) | Projects, talks and blog posts as JSON, shared by the site and the API |
+| [`server/`](server/) | `site-server`: the Rust backend |
+| [`loadgen/`](loadgen/) | Load generator with HDR histograms (closed- and open-loop) |
+| [`docs/API.md`](docs/API.md) | API guide: auth, scopes, quotas, versioning, errors, MCP |
+| [`docs/DEPLOY.md`](docs/DEPLOY.md) | Deploying on a VPS (OVH) behind Cloudflare, monitoring with Datadog |
+| [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | Load-test method and results |
 
 ## Run it locally
 
-Requires Node.js 18+.
+Requires Node.js 22+, Rust 1.94+ and Docker.
 
 ```bash
-npm install
-npm run dev
+# 1. ClickHouse
+docker compose up -d clickhouse
+
+# 2. Frontend build (the Rust server serves web/dist)
+cd web && npm install && npm run build && cd ..
+
+# 3. An API key for yourself (printed once)
+cargo run -p site-server -- keys create --name me \
+  --scopes content:read,events:write,stats:read,messages:read
+
+# 4. The server
+CLICKHOUSE_URL=http://127.0.0.1:8123 CLICKHOUSE_USER=site \
+CLICKHOUSE_PASSWORD=local-dev-only cargo run -p site-server -- serve
 ```
 
-Then open the URL Vite prints (usually http://localhost:5173).
+Then open http://localhost:8080 (site) and http://localhost:8080/docs (API
+reference). For frontend work with hot reload, run `npm run dev` in `web/`
+while the server runs; Vite proxies `/api` and `/v1` to it.
 
-## Build for production
+Or run everything in containers: `docker compose up -d --build`.
+
+### Tests
 
 ```bash
-npm run build     # outputs static files to dist/
-npm run preview   # serve the production build locally
+cargo test --workspace                  # unit + HTTP integration tests
+CLICKHOUSE_URL=http://127.0.0.1:8123 \
+  cargo test -p site-server --test clickhouse   # end-to-end against ClickHouse
+cd web && npm run typecheck
 ```
 
-Deploy the `dist/` folder to any static host (Netlify, Cloudflare Pages,
-OVH, etc.).
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of these,
+with ClickHouse as a service container, plus `cargo fmt --check`, clippy with
+`-D warnings`, and a Docker build that is pushed to GHCR from `main`.
 
-## Where to edit content
+## Editing content
 
-Everything lives at the top of `src/App.jsx`:
+Edit the JSON in [`content/`](content/): see its README. Text that is part of
+the interface (navigation, form labels, the About section and the legal page)
+lives at the top of [`web/src/App.tsx`](web/src/App.tsx).
 
-- `PHOTO_URL` — your portrait (the optimized crop is in `public/cristina.jpg`)
-- `LINKS` — GitHub, LinkedIn, Mastodon, CV, **booking link** (create a
-  Cal.com event and paste its URL), and `contactEndpoint` for the form
-- `PROJECTS`, `TALKS`, `POSTS` — plain arrays; edit freely
-- Talk titles are placeholders — replace them with your real titles
+## Design decisions
 
-## Contact form
-
-The form validates client-side and includes a honeypot anti-spam field,
-but it needs a backend to actually deliver messages. Point
-`LINKS.contactEndpoint` at a Formspree endpoint (or your own API) and it
-will POST `{ name, email, message }` as JSON. Add server-side validation
-and rate limiting there.
-
-## Security headers (recommended at deploy time)
-
-Serve over HTTPS and add: `Strict-Transport-Security`,
-`X-Content-Type-Options: nosniff`, `Referrer-Policy:
-strict-origin-when-cross-origin`, and a `Content-Security-Policy`
-(the only external origin used is Google Fonts; self-host the fonts to
-remove even that).
+- **One binary, one origin.** The site, API and MCP endpoint share a process
+  and an origin: no CORS, one TLS certificate, one thing to deploy. The
+  boundaries live in modules (`server/src/*.rs`), so pieces can be split out
+  when load requires it.
+- **Content as data, embedded at compile time.** The site and the API read
+  the same JSON, so they cannot disagree, and serving content needs no
+  database round trip.
+- **Ingestion never waits on the database.** Handlers validate and enqueue;
+  a writer task batches into ClickHouse. A full queue means `503` with
+  `Retry-After`, never unbounded memory. See
+  [BENCHMARKS.md](docs/BENCHMARKS.md#design-choices-behind-the-numbers).
+- **Data minimisation by construction.** Events store no IP, no user agent,
+  no cookie and no full referrer URL (host only). Country comes from
+  Cloudflare's `CF-IPCountry` and is trusted only when configured. Contact
+  messages are deleted after 180 days. The site's own page-view beacon is
+  compiled out unless built with `VITE_ANALYTICS=on`, because the privacy
+  notice currently says no audience measurement is installed.
+- **Keys are hashed, scoped and limited.** Only SHA-256 hashes are stored.
+  Each key has scopes, a token-bucket rate limit and an optional daily quota.
+  Anonymous callers get read-only content access and a per-IP limit.
+- **MCP is stateless.** `/mcp` runs in stateless JSON mode behind the same
+  auth middleware as `/v1`, so any replica can answer any request and the
+  endpoint scales like the REST API.

@@ -1,0 +1,22 @@
+{
+  "concurrency": 64,
+  "duration_s": 15,
+  "events_per_request": 0,
+  "events_per_s": 0.0,
+  "latency_ms": {
+    "max": 15.135,
+    "p50": 1.524,
+    "p90": 2.469,
+    "p99": 3.513,
+    "p999": 4.923
+  },
+  "mode": "closed-loop",
+  "ok_rps": 40026.0,
+  "requests": 600390,
+  "rps": 40026.0,
+  "status": {
+    "200": 600390
+  },
+  "target_rps": null,
+  "url": "http://127.0.0.1:8080/v1/projects"
+}

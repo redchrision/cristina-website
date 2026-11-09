@@ -1,0 +1,261 @@
+[
+  {
+    "year": "2026",
+    "lang": "FR",
+    "event": "[Event name to fill] · Women's Day 2026",
+    "title": "Shaping AI through women's lenses (panel)",
+    "theme": {
+      "en": "AI & society",
+      "fr": "IA & société"
+    },
+    "description": {
+      "en": "Panel discussion held in French for International Women's Day 2026, on how women's perspectives should shape the direction of AI.",
+      "fr": "Table ronde en français pour la Journée internationale des droits des femmes 2026, sur la manière dont le regard des femmes doit façonner l'avenir de l'IA."
+    },
+    "link": "https://www.youtube.com/watch?v=D50QFNkxtLQ&t=767s"
+  },
+  {
+    "year": "2025",
+    "lang": "EN",
+    "event": "[Conference name to fill]",
+    "title": "Dark patterns in design, with examples from AI and blockchains",
+    "theme": {
+      "en": "Design & ethics",
+      "fr": "Design & éthique"
+    },
+    "description": {
+      "en": "How deceptive design patterns show up in modern products, with concrete examples drawn from AI interfaces and blockchain ecosystems.",
+      "fr": "Comment les dark patterns se manifestent dans les produits modernes, avec des exemples concrets tirés des interfaces d'IA et des écosystèmes blockchain."
+    },
+    "link": "https://www.youtube.com/watch?v=L4072igI8j0"
+  },
+  {
+    "year": "2025",
+    "lang": "EN",
+    "event": "FOSDEM · Brussels · Open Research devroom",
+    "title": "PICO Scholar: Advancing Open Research with an Open-Source AI Platform",
+    "theme": {
+      "en": "AI & open source",
+      "fr": "IA & open source"
+    },
+    "description": {
+      "en": "Co-presented with Matias Vizcaino: an open-source AI platform to make systematic literature reviews faster, more accurate and open to all.",
+      "fr": "Co-présenté avec Matias Vizcaino : une plateforme d'IA open source pour rendre les revues systématiques de littérature plus rapides, plus précises et ouvertes à tous."
+    },
+    "abstract": "PICO Scholar is an open-source project at the proof-of-concept stage, developed by a team from Georgia Tech's Master in Computer Science program with early guidance from Robert Gordon University. Recently recognized with a 2nd place finish at the Red Hat & Intel AI Hackathon, PICO Scholar aims to tackle the growing challenge of sifting through massive, fast-evolving literature, whether in healthcare, engineering, or education. Traditional search tools often struggle with specialized terminology, inconsistent metadata, and a lack of transparent workflows. By integrating domain-adaptive AI and real-time collaboration features, the platform offers a more robust, efficient way for researchers to discover, analyze, and evaluate relevant studies.",
+    "link": "https://archive.fosdem.org/2025/schedule/event/fosdem-2025-6129-pico-scholar-advancing-open-research-with-an-open-source-ai-platform/"
+  },
+  {
+    "year": "2025",
+    "lang": "EN",
+    "event": "Red Hat Developer · Online",
+    "title": "Red Hat & Intel AI Hackathon 2024: winners' showcase (PICO Scholar, 2nd place)",
+    "theme": {
+      "en": "AI & open source",
+      "fr": "IA & open source"
+    },
+    "description": {
+      "en": "Winners' session presenting PICO Scholar, our RAG application built on Red Hat OpenShift AI with Intel Xeon AMX, awarded 2nd place at the 2024 hackathon.",
+      "fr": "Session des lauréats présentant PICO Scholar, notre application RAG construite sur Red Hat OpenShift AI avec Intel Xeon AMX, 2ᵉ place au hackathon 2024."
+    },
+    "link": "https://www.youtube.com/live/LM9vruvPM9M"
+  },
+  {
+    "year": "2021",
+    "lang": "EN",
+    "event": "EC · NGI0 Liaison webinar · Online",
+    "title": "ActivityPub for Administrations",
+    "theme": {
+      "en": "Decentralised web",
+      "fr": "Web décentralisé"
+    },
+    "description": {
+      "en": "Presentation for EU representatives on what ActivityPub and the fediverse can offer public administrations, prepared through collaborative community consensus.",
+      "fr": "Présentation destinée aux représentants de l'UE sur ce qu'ActivityPub et le fédiverse peuvent apporter aux administrations publiques, préparée en concertation avec la communauté."
+    },
+    "link": "https://conf.tube/w/914a0bd6-9a4d-4bd4-b560-41fe9d0bbe69"
+  },
+  {
+    "year": "2020",
+    "lang": "EN",
+    "event": "ActivityPub Conference · Online",
+    "title": "An analysis of privacy design principles as applied to decentralised systems",
+    "theme": {
+      "en": "Privacy & decentralised web",
+      "fr": "Vie privée & web décentralisé"
+    },
+    "description": {
+      "en": "How established privacy design principles map onto decentralised architectures: where they fit naturally, and where they strain.",
+      "fr": "Comment les grands principes du privacy by design s'appliquent aux architectures décentralisées : là où ils s'ajustent naturellement, et là où ça coince."
+    },
+    "link": "https://conf.tube/w/a0196813-fb0d-4740-a37a-5f2b1fd1e774"
+  },
+  {
+    "year": "2020",
+    "lang": "EN",
+    "event": "FOSDEM · Brussels · Legal & Policy devroom",
+    "title": "Technology challenges for privacy: the case of decentralised social media",
+    "theme": {
+      "en": "Privacy & decentralised web",
+      "fr": "Vie privée & web décentralisé"
+    },
+    "description": {
+      "en": "The advantages and challenges of decentralised social media, seen through data protection law and privacy architectural strategies.",
+      "fr": "Les atouts et les défis des réseaux sociaux décentralisés, vus à travers le prisme de la protection des données et des stratégies d'architecture de la vie privée."
+    },
+    "abstract": "As decentralized social media gathers more users, the privacy by design and default principles from the GDPR are in accordance with the design model it proposes. This talk tackles the main advantages and challenges this approach brings, from the perspective of data protection legislation and privacy architectural strategies, including data separation as a core strategy, and blockchain- and ActivityPub-based networks as the leading examples.",
+    "link": "https://archive.fosdem.org/2020/schedule/event/challenges_for_privacy/"
+  },
+  {
+    "year": "2019",
+    "lang": "EN",
+    "event": "O'Reilly Software Architecture · Berlin",
+    "title": "OSS shaping the future of data protection compliance",
+    "theme": {
+      "en": "Privacy & open source",
+      "fr": "Vie privée & open source"
+    },
+    "description": {
+      "en": "How the open-source ecosystem is shaping what practical data-protection compliance looks like.",
+      "fr": "Comment l'écosystème open source façonne, dans la pratique, la conformité en matière de protection des données."
+    },
+    "link": "https://www.oreilly.com/library/view/oreilly-software-architecture/9781492050728/video328577.html"
+  },
+  {
+    "year": "2019",
+    "lang": "EN",
+    "event": "Percona Live Europe · Amsterdam",
+    "title": "Shaping the Future of Privacy & Data Protection",
+    "theme": {
+      "en": "Privacy & open source",
+      "fr": "Vie privée & open source"
+    },
+    "description": {
+      "en": "A look at where privacy and data protection are heading, for an audience of open-source database engineers.",
+      "fr": "Un regard sur l'avenir de la vie privée et de la protection des données, pour un public d'ingénieurs de bases de données open source."
+    },
+    "link": "https://www.percona.com/blog/security-matters-at-percona-live-europe-2019/"
+  },
+  {
+    "year": "2019",
+    "lang": "EN",
+    "event": "ActivityPub Conference · Prague",
+    "title": "OSS compliance with privacy by default and design",
+    "theme": {
+      "en": "Privacy & decentralised web",
+      "fr": "Vie privée & web décentralisé"
+    },
+    "description": {
+      "en": "What privacy by default and by design mean concretely for open-source and federated projects.",
+      "fr": "Ce que le privacy by design et le privacy by default signifient concrètement pour les projets open source et fédérés."
+    },
+    "link": "https://archive.org/details/apconf-talks"
+  },
+  {
+    "year": "2019",
+    "lang": "EN",
+    "event": "Pas Sage en Seine · Paris",
+    "title": "OSS shaping the future of privacy",
+    "theme": {
+      "en": "Privacy & open source",
+      "fr": "Vie privée & open source"
+    },
+    "description": {
+      "en": "Open source as the natural home of privacy-preserving technology, at the Parisian hacker culture festival.",
+      "fr": "L'open source comme terrain naturel des technologies protectrices de la vie privée, au festival parisien de la culture hacker."
+    },
+    "link": "https://programme.passageenseine.fr/table/"
+  },
+  {
+    "year": "2019",
+    "lang": "EN",
+    "event": "FOSDEM · Brussels · Legal & Policy devroom",
+    "title": "Open source in the quest for GDPR compliance",
+    "theme": {
+      "en": "Privacy & open source",
+      "fr": "Vie privée & open source"
+    },
+    "description": {
+      "en": "How the GDPR's principles connect to the open-source ecosystem, and how rights and responsibilities are shared between communities and their infrastructure providers.",
+      "fr": "Comment les principes du RGPD se connectent à l'écosystème open source, et comment droits et responsabilités se répartissent entre les communautés et leurs hébergeurs d'infrastructure."
+    },
+    "abstract": "The OSS field has as core value the concept of community. Not surprisingly, a lot of OSS projects revolve around privacy, anonymity and data protection. This talk analyses how the provisions of the GDPR are tangential to the OSS ecosystem: how its principles connect to the OSS world, how the data controller / data processor model maps to OSS participants and infrastructure providers, and how data-protection rights are enforced by the OSS model, through technologies such as wikis and zero-knowledge collaborative software.",
+    "link": "https://archive.fosdem.org/2019/schedule/event/open_source_gdpr/"
+  },
+  {
+    "year": "2018",
+    "lang": "EN",
+    "event": "EOLE · Paris Open Source Summit",
+    "title": "Epic fails and good practices in the quest for GDPR compliance",
+    "theme": {
+      "en": "Privacy & compliance",
+      "fr": "Vie privée & conformité"
+    },
+    "description": {
+      "en": "Lessons from the field: what went wrong and what worked in real GDPR compliance efforts.",
+      "fr": "Leçons du terrain : ce qui a échoué et ce qui a fonctionné dans de vrais chantiers de conformité RGPD."
+    },
+    "link": "https://eolevent.eu/eole-2018-compliance-conformance-processes-time-mainstream-open-source"
+  },
+  {
+    "year": "2018",
+    "lang": "EN",
+    "event": "OW2con · Paris",
+    "title": "On GDPR compliance, the Right to be Forgotten and Artificial Intelligence",
+    "theme": {
+      "en": "Privacy & AI",
+      "fr": "Vie privée & IA"
+    },
+    "description": {
+      "en": "Where the right to be forgotten meets machine learning, and why deletion is harder than it sounds.",
+      "fr": "Là où le droit à l'oubli rencontre le machine learning, et pourquoi la suppression est plus difficile qu'il n'y paraît."
+    },
+    "link": "https://www.ow2con.org/view/2018/Videos"
+  },
+  {
+    "year": "2018",
+    "lang": "EN",
+    "event": "Codecamp · Iași",
+    "title": "On GDPR compliance, AI and the Right to be Forgotten",
+    "theme": {
+      "en": "Privacy & AI",
+      "fr": "Vie privée & IA"
+    },
+    "description": {
+      "en": "The Romanian edition of the right-to-be-forgotten-meets-AI talk, for one of the country's largest developer conferences.",
+      "fr": "La version roumaine du talk sur le droit à l'oubli et l'IA, donnée à l'une des plus grandes conférences de développeurs du pays."
+    },
+    "link": "https://www.facebook.com/CodecampRO/photos/t.532724879/1633097680061320/?type=3"
+  },
+  {
+    "year": "2018",
+    "lang": "EN",
+    "event": "FOSDEM · Brussels · Legal & Policy devroom",
+    "title": "Artificial intelligence dealing with the right to be forgotten",
+    "theme": {
+      "en": "Privacy & AI",
+      "fr": "Vie privée & IA"
+    },
+    "description": {
+      "en": "Human memory forgets; machine learning doesn't. What the right to be forgotten can even mean for AI systems, de lege lata and de lege ferenda.",
+      "fr": "La mémoire humaine oublie ; le machine learning, non. Ce que le droit à l'oubli peut bien signifier pour les systèmes d'IA, de lege lata et de lege ferenda."
+    },
+    "abstract": "The right to be forgotten encounters difficulties in defining its applicability in the context of continuous tech evolution. AI development particularly raises problems due to the nature of machine learning and the differences between the memory processes of humans and AI systems. This talk analyses the right to be forgotten as a concept and its juridical nature, compares psychological memory with how AI systems 'remember', asks when deletion can be considered an act of forgetting, and explores potential legal and policy adaptations to current statutory law.",
+    "link": "https://archive.fosdem.org/2018/schedule/event/ai_right_to_be_forgotten/"
+  },
+  {
+    "year": "2017",
+    "lang": "EN",
+    "event": "34C3 · Chaos Communication Congress · Leipzig",
+    "title": "A look at the debate regarding the right to Internet access (lightning talk)",
+    "theme": {
+      "en": "Digital rights",
+      "fr": "Droits numériques"
+    },
+    "description": {
+      "en": "A lightning talk at the Chaos Communication Congress on whether Internet access should be recognised as a right.",
+      "fr": "Un lightning talk au Chaos Communication Congress : l'accès à Internet doit-il être reconnu comme un droit ?"
+    },
+    "link": "https://media.ccc.de/v/34c3-9258-lightning_talks_day_4#t=3192"
+  }
+]
