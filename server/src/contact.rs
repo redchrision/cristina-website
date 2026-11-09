@@ -85,7 +85,10 @@ pub async fn submit(State(state): State<AppState>, req: Request) -> ApiResult<im
     let form: ContactForm = serde_json::from_slice(&body)
         .map_err(|e| ApiError::BadRequest(format!("invalid JSON: {e}")))?;
 
-    let accepted = (StatusCode::ACCEPTED, Json(ContactAccepted { status: "received" }));
+    let accepted = (
+        StatusCode::ACCEPTED,
+        Json(ContactAccepted { status: "received" }),
+    );
     if !form.website.is_empty() {
         // Pretend success so bots learn nothing.
         metrics::counter!("contact_messages_total", "outcome" => "honeypot").increment(1);
@@ -93,7 +96,9 @@ pub async fn submit(State(state): State<AppState>, req: Request) -> ApiResult<im
     }
     form.validate().map_err(ApiError::BadRequest)?;
 
-    let d = state.limiter.check(&format!("contact:{ip}"), CONTACT_POLICY);
+    let d = state
+        .limiter
+        .check(&format!("contact:{ip}"), CONTACT_POLICY);
     if !d.allowed {
         metrics::counter!("contact_messages_total", "outcome" => "rate_limited").increment(1);
         return Err(ApiError::RateLimited {
@@ -152,7 +157,8 @@ pub async fn list(db: &SqlitePool, limit: u32) -> sqlx::Result<Vec<ContactMessag
 
 /// Delete messages past the retention period.
 pub async fn purge_expired(db: &SqlitePool, retention_days: u32) -> sqlx::Result<u64> {
-    let cutoff = time::OffsetDateTime::now_utc().unix_timestamp() - i64::from(retention_days) * 86_400;
+    let cutoff =
+        time::OffsetDateTime::now_utc().unix_timestamp() - i64::from(retention_days) * 86_400;
     let res = sqlx::query("DELETE FROM contact_messages WHERE received_at < ?")
         .bind(cutoff)
         .execute(db)

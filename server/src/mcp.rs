@@ -91,7 +91,9 @@ fn principal(parts: &http::request::Parts) -> Result<Principal, ErrorData> {
 
 fn to_mcp(e: ApiError) -> ErrorData {
     match e {
-        ApiError::Unauthorized | ApiError::Forbidden(_) => ErrorData::invalid_request(e.to_string(), None),
+        ApiError::Unauthorized | ApiError::Forbidden(_) => {
+            ErrorData::invalid_request(e.to_string(), None)
+        }
         ApiError::BadRequest(m) => ErrorData::invalid_params(m, None),
         other => ErrorData::internal_error(other.to_string(), None),
     }
@@ -110,8 +112,13 @@ impl SiteMcp {
         }
     }
 
-    #[tool(description = "List Cristina DeLisle's projects (name, role, description, tags, links).")]
-    async fn list_projects(&self, Parameters(a): Parameters<LangArgs>) -> Result<String, ErrorData> {
+    #[tool(
+        description = "List Cristina DeLisle's projects (name, role, description, tags, links)."
+    )]
+    async fn list_projects(
+        &self,
+        Parameters(a): Parameters<LangArgs>,
+    ) -> Result<String, ErrorData> {
         json(&content::projects(a.lang))
     }
 
@@ -120,27 +127,46 @@ impl SiteMcp {
         json(&content::talks(a.lang))
     }
 
-    #[tool(description = "List blog posts (title, date, excerpt, tags), optionally filtered by tag.")]
-    async fn list_blog_posts(&self, Parameters(a): Parameters<PostsArgs>) -> Result<String, ErrorData> {
+    #[tool(
+        description = "List blog posts (title, date, excerpt, tags), optionally filtered by tag."
+    )]
+    async fn list_blog_posts(
+        &self,
+        Parameters(a): Parameters<PostsArgs>,
+    ) -> Result<String, ErrorData> {
         json(&content::posts(a.lang, a.tag.as_deref()))
     }
 
     #[tool(description = "Get the full text of one blog post by slug.")]
-    async fn get_blog_post(&self, Parameters(a): Parameters<PostArgs>) -> Result<String, ErrorData> {
+    async fn get_blog_post(
+        &self,
+        Parameters(a): Parameters<PostArgs>,
+    ) -> Result<String, ErrorData> {
         match content::post(&a.slug, a.lang) {
             Some(p) => json(&p),
-            None => Err(ErrorData::invalid_params(format!("no post with slug `{}`", a.slug), None)),
+            None => Err(ErrorData::invalid_params(
+                format!("no post with slug `{}`", a.slug),
+                None,
+            )),
         }
     }
 
-    #[tool(description = "Traffic summary: total events by kind and top countries. Requires the stats:read scope.")]
+    #[tool(
+        description = "Traffic summary: total events by kind and top countries. Requires the stats:read scope."
+    )]
     async fn traffic_summary(
         &self,
         Extension(parts): Extension<http::request::Parts>,
         Parameters(a): Parameters<StatsArgs>,
     ) -> Result<String, ErrorData> {
-        principal(&parts)?.require(Scope::StatsRead).map_err(to_mcp)?;
-        json(&stats::summary(&self.state.sink, &a.into()).await.map_err(to_mcp)?)
+        principal(&parts)?
+            .require(Scope::StatsRead)
+            .map_err(to_mcp)?;
+        json(
+            &stats::summary(&self.state.sink, &a.into())
+                .await
+                .map_err(to_mcp)?,
+        )
     }
 
     #[tool(description = "Daily event counts for the last N days. Requires the stats:read scope.")]
@@ -149,8 +175,14 @@ impl SiteMcp {
         Extension(parts): Extension<http::request::Parts>,
         Parameters(a): Parameters<StatsArgs>,
     ) -> Result<String, ErrorData> {
-        principal(&parts)?.require(Scope::StatsRead).map_err(to_mcp)?;
-        json(&stats::timeseries(&self.state.sink, &a.into()).await.map_err(to_mcp)?)
+        principal(&parts)?
+            .require(Scope::StatsRead)
+            .map_err(to_mcp)?;
+        json(
+            &stats::timeseries(&self.state.sink, &a.into())
+                .await
+                .map_err(to_mcp)?,
+        )
     }
 
     #[tool(description = "Most visited paths over the last N days. Requires the stats:read scope.")]
@@ -159,17 +191,27 @@ impl SiteMcp {
         Extension(parts): Extension<http::request::Parts>,
         Parameters(a): Parameters<StatsArgs>,
     ) -> Result<String, ErrorData> {
-        principal(&parts)?.require(Scope::StatsRead).map_err(to_mcp)?;
-        json(&stats::top_paths(&self.state.sink, &a.into()).await.map_err(to_mcp)?)
+        principal(&parts)?
+            .require(Scope::StatsRead)
+            .map_err(to_mcp)?;
+        json(
+            &stats::top_paths(&self.state.sink, &a.into())
+                .await
+                .map_err(to_mcp)?,
+        )
     }
 
-    #[tool(description = "Most recent contact-form messages. Contains personal data; requires the messages:read scope.")]
+    #[tool(
+        description = "Most recent contact-form messages. Contains personal data; requires the messages:read scope."
+    )]
     async fn list_contact_messages(
         &self,
         Extension(parts): Extension<http::request::Parts>,
         Parameters(a): Parameters<MessagesArgs>,
     ) -> Result<String, ErrorData> {
-        principal(&parts)?.require(Scope::MessagesRead).map_err(to_mcp)?;
+        principal(&parts)?
+            .require(Scope::MessagesRead)
+            .map_err(to_mcp)?;
         let msgs = contact::list(&self.state.db, a.limit.unwrap_or(20))
             .await
             .map_err(|e| to_mcp(e.into()))?;
@@ -188,8 +230,8 @@ impl ServerHandler for SiteMcp {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(info)
             .with_instructions(
-            "Tools for Cristina DeLisle's personal website: her projects, talks and blog \
+                "Tools for Cristina DeLisle's personal website: her projects, talks and blog \
              posts (public), plus site analytics and the contact inbox (scoped API keys).",
-        )
+            )
     }
 }

@@ -166,7 +166,11 @@ impl KeyStore {
                     id: r.id,
                     name: r.name,
                     prefix: r.prefix,
-                    scopes: r.scopes.split_whitespace().filter_map(|s| s.parse().ok()).collect(),
+                    scopes: r
+                        .scopes
+                        .split_whitespace()
+                        .filter_map(|s| s.parse().ok())
+                        .collect(),
                     policy: Policy::new(r.rate_per_sec, r.burst),
                     daily_quota: r.daily_quota.map(|q| q as u64),
                 };
@@ -191,11 +195,17 @@ impl KeyStore {
 fn presented_key(headers: &HeaderMap) -> Option<&str> {
     if let Some(v) = headers.get("authorization").and_then(|v| v.to_str().ok()) {
         let v = v.trim();
-        if let Some(token) = v.strip_prefix("Bearer ").or_else(|| v.strip_prefix("bearer ")) {
+        if let Some(token) = v
+            .strip_prefix("Bearer ")
+            .or_else(|| v.strip_prefix("bearer "))
+        {
             return Some(token.trim());
         }
     }
-    headers.get("x-api-key").and_then(|v| v.to_str().ok()).map(str::trim)
+    headers
+        .get("x-api-key")
+        .and_then(|v| v.to_str().ok())
+        .map(str::trim)
 }
 
 /// Best-effort client IP. Behind Cloudflare the TCP peer is a Cloudflare edge,
@@ -257,7 +267,11 @@ pub async fn authenticate(State(state): State<AppState>, mut req: Request, next:
     let mut quota_headers = None;
     if let Principal::Key(k) = &principal {
         match state.quotas.try_consume(k.id, 1, k.daily_quota) {
-            Ok(used) => quota_headers = k.daily_quota.map(|limit| (limit, limit.saturating_sub(used))),
+            Ok(used) => {
+                quota_headers = k
+                    .daily_quota
+                    .map(|limit| (limit, limit.saturating_sub(used)))
+            }
             Err(_) => {
                 metrics::counter!("api_quota_exhausted_total", "principal" => principal.label())
                     .increment(1);
@@ -311,8 +325,13 @@ mod tests {
 
     #[test]
     fn anonymous_can_only_read_content() {
-        let anon = Principal::Anonymous { ip: "1.2.3.4".into() };
+        let anon = Principal::Anonymous {
+            ip: "1.2.3.4".into(),
+        };
         assert!(anon.require(Scope::ContentRead).is_ok());
-        assert!(matches!(anon.require(Scope::StatsRead), Err(ApiError::Unauthorized)));
+        assert!(matches!(
+            anon.require(Scope::StatsRead),
+            Err(ApiError::Unauthorized)
+        ));
     }
 }

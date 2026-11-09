@@ -88,7 +88,10 @@ impl IntoResponse for ApiError {
             other => Some(other.to_string()),
         };
         let body = Problem {
-            kind: format!("https://cristinadelisle.xyz/problems/{}", code.replace('_', "-")),
+            kind: format!(
+                "https://cristinadelisle.xyz/problems/{}",
+                code.replace('_', "-")
+            ),
             title: status.canonical_reason().unwrap_or("Error").to_owned(),
             status: status.as_u16(),
             detail,

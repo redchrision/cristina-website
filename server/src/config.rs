@@ -29,7 +29,11 @@ pub struct ServeConfig {
     pub static_dir: PathBuf,
 
     /// SQLite database for API keys, quota usage and contact messages.
-    #[arg(long, env = "DATABASE_URL", default_value = "sqlite://data/site.db?mode=rwc")]
+    #[arg(
+        long,
+        env = "DATABASE_URL",
+        default_value = "sqlite://data/site.db?mode=rwc"
+    )]
     pub database_url: String,
 
     /// ClickHouse HTTP endpoint. When unset, events are accepted and dropped
@@ -43,7 +47,12 @@ pub struct ServeConfig {
     #[arg(long, env = "CLICKHOUSE_USER", default_value = "default")]
     pub clickhouse_user: String,
 
-    #[arg(long, env = "CLICKHOUSE_PASSWORD", default_value = "", hide_env_values = true)]
+    #[arg(
+        long,
+        env = "CLICKHOUSE_PASSWORD",
+        default_value = "",
+        hide_env_values = true
+    )]
     pub clickhouse_password: String,
 
     /// Bounded in-memory queue between the HTTP handlers and the ClickHouse

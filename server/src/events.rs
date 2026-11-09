@@ -141,7 +141,7 @@ pub fn now_ms() -> i64 {
 /// Where batches go.
 #[derive(Clone)]
 pub enum Sink {
-    ClickHouse(clickhouse::Client),
+    ClickHouse(Box<clickhouse::Client>),
     /// Keeps rows in memory (tests).
     Memory(Arc<std::sync::Mutex<Vec<EventRow>>>),
     /// No analytics store configured: accept and drop.
@@ -160,7 +160,10 @@ impl Sink {
                 Ok(())
             }
             Self::Memory(store) => {
-                store.lock().expect("memory sink poisoned").extend_from_slice(rows);
+                store
+                    .lock()
+                    .expect("memory sink poisoned")
+                    .extend_from_slice(rows);
                 Ok(())
             }
             Self::Discard => Ok(()),
@@ -185,7 +188,8 @@ impl Ingestor {
                     permit.send(row);
                 }
                 metrics::counter!("ingest_events_accepted_total").increment(n as u64);
-                metrics::gauge!("ingest_queue_depth").set((self.capacity - self.tx.capacity()) as f64);
+                metrics::gauge!("ingest_queue_depth")
+                    .set((self.capacity - self.tx.capacity()) as f64);
                 Ok(n)
             }
             Err(_) => {
@@ -253,7 +257,11 @@ async fn flush(sink: &Sink, batch: &mut Vec<EventRow>) {
                 metrics::histogram!("ingest_flush_duration_seconds").record(started.elapsed());
                 metrics::histogram!("ingest_flush_rows").record(n as f64);
                 metrics::counter!("ingest_events_written_total").increment(n as u64);
-                tracing::debug!(rows = n, ms = started.elapsed().as_millis() as u64, "flushed");
+                tracing::debug!(
+                    rows = n,
+                    ms = started.elapsed().as_millis() as u64,
+                    "flushed"
+                );
                 batch.clear();
                 return;
             }
@@ -264,7 +272,10 @@ async fn flush(sink: &Sink, batch: &mut Vec<EventRow>) {
             }
         }
     }
-    tracing::error!(rows = n, "dropping batch after repeated ClickHouse failures");
+    tracing::error!(
+        rows = n,
+        "dropping batch after repeated ClickHouse failures"
+    );
     metrics::counter!("ingest_events_dropped_total").increment(n as u64);
     batch.clear();
 }
@@ -339,7 +350,9 @@ mod tests {
 
     #[test]
     fn rows_are_normalised_and_minimised() {
-        let row = ev("PageView", "/").into_row(&EventContext::default(), 1_000).unwrap();
+        let row = ev("PageView", "/")
+            .into_row(&EventContext::default(), 1_000)
+            .unwrap();
         assert_eq!(row.kind, "pageview");
         assert_eq!(row.referrer_host, "news.ycombinator.com");
         assert_eq!(row.lang, "fr");
@@ -352,7 +365,11 @@ mod tests {
     fn invalid_events_are_rejected() {
         assert!(ev("", "/").into_row(&EventContext::default(), 0).is_err());
         assert!(ev("x", "").into_row(&EventContext::default(), 0).is_err());
-        assert!(ev("x", &"a".repeat(600)).into_row(&EventContext::default(), 0).is_err());
+        assert!(
+            ev("x", &"a".repeat(600))
+                .into_row(&EventContext::default(), 0)
+                .is_err()
+        );
     }
 
     #[tokio::test]
@@ -367,7 +384,11 @@ mod tests {
             },
         );
         let rows: Vec<_> = (0..25)
-            .map(|i| ev("x", &format!("/{i}")).into_row(&EventContext::default(), 0).unwrap())
+            .map(|i| {
+                ev("x", &format!("/{i}"))
+                    .into_row(&EventContext::default(), 0)
+                    .unwrap()
+            })
             .collect();
         ing.enqueue(rows).unwrap();
         drop(ing);

@@ -122,8 +122,13 @@ async fn list_posts(Query(q): Query<PostsQuery>) -> Json<PostList> {
 #[utoipa::path(get, path = "/posts/{slug}", tag = "content",
     params(("slug" = String, Path, description = "Post slug"), LangQuery),
     responses((status = 200, body = BlogPost), (status = 404, body = Problem)))]
-async fn get_post(Path(slug): Path<String>, Query(q): Query<LangQuery>) -> ApiResult<Json<BlogPost>> {
-    content::post(&slug, q.lang).map(Json).ok_or(ApiError::NotFound)
+async fn get_post(
+    Path(slug): Path<String>,
+    Query(q): Query<LangQuery>,
+) -> ApiResult<Json<BlogPost>> {
+    content::post(&slug, q.lang)
+        .map(Json)
+        .ok_or(ApiError::NotFound)
 }
 
 /// Ingest a batch of events. Each event also counts one unit against the
@@ -167,11 +172,17 @@ async fn ingest_events(
         .events
         .into_iter()
         .enumerate()
-        .map(|(i, e)| e.into_row(&ctx, now).map_err(|m| ApiError::BadRequest(format!("events[{i}]: {m}"))))
+        .map(|(i, e)| {
+            e.into_row(&ctx, now)
+                .map_err(|m| ApiError::BadRequest(format!("events[{i}]: {m}")))
+        })
         .collect::<Result<Vec<_>, _>>()?;
 
     if let Principal::Key(k) = &principal
-        && state.quotas.try_consume(k.id, n as u64, k.daily_quota).is_err()
+        && state
+            .quotas
+            .try_consume(k.id, n as u64, k.daily_quota)
+            .is_err()
     {
         return Err(ApiError::QuotaExhausted {
             retry_after_secs: quota::secs_until_utc_midnight(),
@@ -238,7 +249,11 @@ async fn list_messages(
     Query(q): Query<MessagesQuery>,
 ) -> ApiResult<Json<MessageList>> {
     principal.require(Scope::MessagesRead)?;
-    Ok(Json(contact::list(&state.db, q.limit.unwrap_or(50)).await?.into()))
+    Ok(Json(
+        contact::list(&state.db, q.limit.unwrap_or(50))
+            .await?
+            .into(),
+    ))
 }
 
 /// Describe the calling principal: scopes, limits and today's usage.

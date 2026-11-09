@@ -26,7 +26,12 @@ enum Cmd {
     Serve(Box<ServeConfig>),
     /// Manage API keys.
     Keys {
-        #[arg(long, env = "DATABASE_URL", default_value = "sqlite://data/site.db?mode=rwc", global = true)]
+        #[arg(
+            long,
+            env = "DATABASE_URL",
+            default_value = "sqlite://data/site.db?mode=rwc",
+            global = true
+        )]
         database_url: String,
         #[command(subcommand)]
         cmd: KeysCmd,
@@ -40,7 +45,12 @@ enum Cmd {
         database: String,
         #[arg(long, env = "CLICKHOUSE_USER", default_value = "default")]
         user: String,
-        #[arg(long, env = "CLICKHOUSE_PASSWORD", default_value = "", hide_env_values = true)]
+        #[arg(
+            long,
+            env = "CLICKHOUSE_PASSWORD",
+            default_value = "",
+            hide_env_values = true
+        )]
         password: String,
     },
 }
@@ -96,7 +106,12 @@ fn init_tracing(format: LogFormat) {
     let registry = tracing_subscriber::registry().with(filter);
     match format {
         LogFormat::Json => registry
-            .with(tracing_subscriber::fmt::layer().json().flatten_event(true).with_current_span(true))
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .json()
+                    .flatten_event(true)
+                    .with_current_span(true),
+            )
             .init(),
         LogFormat::Pretty => registry.with(tracing_subscriber::fmt::layer()).init(),
     }
@@ -118,7 +133,9 @@ fn install_metrics() -> anyhow::Result<PrometheusHandle> {
         .set_buckets_for_metric(Matcher::Suffix("duration_seconds".into()), &latency)?
         .set_buckets_for_metric(
             Matcher::Full("ingest_flush_rows".into()),
-            &[1.0, 10.0, 100.0, 1_000.0, 5_000.0, 10_000.0, 20_000.0, 50_000.0],
+            &[
+                1.0, 10.0, 100.0, 1_000.0, 5_000.0, 10_000.0, 20_000.0, 50_000.0,
+            ],
         )?
         .install_recorder()
         .context("installing Prometheus recorder")
@@ -128,18 +145,27 @@ async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
     init_tracing(cfg.log_format);
     let prom = install_metrics()?;
 
-    let db = app::open_db(&cfg.database_url).await.context("opening SQLite")?;
+    let db = app::open_db(&cfg.database_url)
+        .await
+        .context("opening SQLite")?;
 
     let sink = match &cfg.clickhouse_url {
         Some(url) => {
-            let client = clickhouse_client(url, &cfg.clickhouse_database, &cfg.clickhouse_user, &cfg.clickhouse_password);
+            let client = clickhouse_client(
+                url,
+                &cfg.clickhouse_database,
+                &cfg.clickhouse_user,
+                &cfg.clickhouse_password,
+            );
             // Don't refuse to start if ClickHouse is briefly down: the writer
             // retries, and /readyz reports it.
             match events::init_clickhouse(&client, &cfg.clickhouse_database).await {
                 Ok(()) => tracing::info!(%url, "ClickHouse schema ready"),
-                Err(e) => tracing::warn!(error = %e, "ClickHouse init failed; will retry on writes"),
+                Err(e) => {
+                    tracing::warn!(error = %e, "ClickHouse init failed; will retry on writes")
+                }
             }
-            Sink::ClickHouse(client)
+            Sink::ClickHouse(Box::new(client))
         }
         None => {
             tracing::warn!("CLICKHOUSE_URL not set: events are accepted and discarded");
@@ -172,7 +198,9 @@ async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
         quotas,
         ingest,
         sink,
-        http: reqwest::Client::builder().timeout(Duration::from_secs(10)).build()?,
+        http: reqwest::Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build()?,
     }));
 
     let shutdown = CancellationToken::new();
@@ -180,7 +208,9 @@ async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
     let metrics_task = tokio::spawn(serve_metrics(metrics_bind, prom, shutdown.clone()));
 
     let router = app::router(state.clone(), shutdown.clone());
-    let listener = tokio::net::TcpListener::bind(bind).await.with_context(|| format!("binding {bind}"))?;
+    let listener = tokio::net::TcpListener::bind(bind)
+        .await
+        .with_context(|| format!("binding {bind}"))?;
     tracing::info!(%bind, %metrics_bind, "listening");
 
     let token = shutdown.clone();
@@ -198,7 +228,10 @@ async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
     // Drop the last Ingestor so the writer drains the queue and exits.
     let _ = background.await;
     drop(state);
-    if tokio::time::timeout(Duration::from_secs(20), writer).await.is_err() {
+    if tokio::time::timeout(Duration::from_secs(20), writer)
+        .await
+        .is_err()
+    {
         tracing::warn!("event writer did not drain within 20 s");
     }
     let _ = metrics_task.await;
@@ -206,7 +239,11 @@ async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn serve_metrics(bind: std::net::SocketAddr, prom: PrometheusHandle, shutdown: CancellationToken) {
+async fn serve_metrics(
+    bind: std::net::SocketAddr,
+    prom: PrometheusHandle,
+    shutdown: CancellationToken,
+) {
     use axum::{Router, routing::get};
     let upkeep = prom.clone();
     let st = shutdown.clone();
@@ -236,7 +273,8 @@ async fn shutdown_signal() {
     };
     #[cfg(unix)]
     let term = async {
-        if let Ok(mut s) = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+        if let Ok(mut s) = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        {
             s.recv().await;
         }
     };
@@ -244,6 +282,9 @@ async fn shutdown_signal() {
     let term = std::future::pending::<()>();
     tokio::select! { _ = ctrl_c => {}, _ = term => {} }
 }
+
+/// prefix, name, scopes, rate, burst, daily quota, revoked at
+type KeyListRow = (String, String, String, f64, f64, Option<i64>, Option<i64>);
 
 async fn keys(database_url: &str, cmd: KeysCmd) -> anyhow::Result<()> {
     let db = app::open_db(database_url).await?;
@@ -261,9 +302,16 @@ async fn keys(database_url: &str, cmd: KeysCmd) -> anyhow::Result<()> {
                 .map(|s| s.parse().map_err(anyhow::Error::msg))
                 .collect::<anyhow::Result<_>>()?;
             anyhow::ensure!(!scopes.is_empty(), "at least one scope is required");
-            anyhow::ensure!(rate > 0.0 && burst >= 1.0, "rate must be > 0 and burst >= 1");
+            anyhow::ensure!(
+                rate > 0.0 && burst >= 1.0,
+                "rate must be > 0 and burst >= 1"
+            );
             let (key, prefix) = auth::generate_key();
-            let scope_str = scopes.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(" ");
+            let scope_str = scopes
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join(" ");
             sqlx::query(
                 "INSERT INTO api_keys (name, prefix, secret_hash, scopes, rate_per_sec, burst, daily_quota, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -279,32 +327,46 @@ async fn keys(database_url: &str, cmd: KeysCmd) -> anyhow::Result<()> {
             .execute(&db)
             .await?;
             eprintln!("Created key `{name}` ({prefix}) with scopes: {scope_str}");
-            eprintln!("Store it now; it cannot be shown again. A running server picks it up within 30 s.");
+            eprintln!(
+                "Store it now; it cannot be shown again. A running server picks it up within 30 s."
+            );
             println!("{key}");
         }
         KeysCmd::List => {
-            let rows: Vec<(String, String, String, f64, f64, Option<i64>, Option<i64>)> = sqlx::query_as(
+            let rows: Vec<KeyListRow> = sqlx::query_as(
                 "SELECT prefix, name, scopes, rate_per_sec, burst, daily_quota, revoked_at
                  FROM api_keys ORDER BY id",
             )
             .fetch_all(&db)
             .await?;
-            println!("{:<14} {:<20} {:<8} {:<7} {:<12} {:<8} SCOPES", "PREFIX", "NAME", "RATE/S", "BURST", "DAILY", "STATUS");
+            println!(
+                "{:<14} {:<20} {:<8} {:<7} {:<12} {:<8} SCOPES",
+                "PREFIX", "NAME", "RATE/S", "BURST", "DAILY", "STATUS"
+            );
             for (prefix, name, scopes, rate, burst, quota, revoked) in rows {
                 println!(
                     "{prefix:<14} {name:<20} {rate:<8} {burst:<7} {:<12} {:<8} {scopes}",
                     quota.map_or("unlimited".into(), |q| q.to_string()),
-                    if revoked.is_some() { "revoked" } else { "active" },
+                    if revoked.is_some() {
+                        "revoked"
+                    } else {
+                        "active"
+                    },
                 );
             }
         }
         KeysCmd::Revoke { prefix } => {
-            let res = sqlx::query("UPDATE api_keys SET revoked_at = ? WHERE prefix = ? AND revoked_at IS NULL")
-                .bind(time::OffsetDateTime::now_utc().unix_timestamp())
-                .bind(&prefix)
-                .execute(&db)
-                .await?;
-            anyhow::ensure!(res.rows_affected() == 1, "no active key with prefix {prefix}");
+            let res = sqlx::query(
+                "UPDATE api_keys SET revoked_at = ? WHERE prefix = ? AND revoked_at IS NULL",
+            )
+            .bind(time::OffsetDateTime::now_utc().unix_timestamp())
+            .bind(&prefix)
+            .execute(&db)
+            .await?;
+            anyhow::ensure!(
+                res.rows_affected() == 1,
+                "no active key with prefix {prefix}"
+            );
             println!("Revoked {prefix}. A running server stops accepting it within 30 s.");
         }
     }

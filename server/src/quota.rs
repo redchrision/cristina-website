@@ -113,7 +113,7 @@ impl RateLimiter {
         removed
     }
 
-    pub fn len(&self) -> usize {
+    pub fn bucket_count(&self) -> usize {
         self.shards
             .iter()
             .map(|s| s.lock().expect("rate limiter lock poisoned").len())
@@ -123,7 +123,9 @@ impl RateLimiter {
 
 /// UTC day number (days since the Unix epoch).
 pub fn utc_day() -> i64 {
-    time::OffsetDateTime::now_utc().unix_timestamp().div_euclid(86_400)
+    time::OffsetDateTime::now_utc()
+        .unix_timestamp()
+        .div_euclid(86_400)
 }
 
 pub fn secs_until_utc_midnight() -> u64 {

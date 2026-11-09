@@ -48,10 +48,14 @@ impl Default for StatsQuery {
 impl StatsQuery {
     fn validated(&self) -> Result<(u32, &str, u32), ApiError> {
         if !(1..=400).contains(&self.days) {
-            return Err(ApiError::BadRequest("`days` must be between 1 and 400".into()));
+            return Err(ApiError::BadRequest(
+                "`days` must be between 1 and 400".into(),
+            ));
         }
         if !(1..=100).contains(&self.limit) {
-            return Err(ApiError::BadRequest("`limit` must be between 1 and 100".into()));
+            return Err(ApiError::BadRequest(
+                "`limit` must be between 1 and 100".into(),
+            ));
         }
         Ok((self.days, self.kind.as_str(), self.limit))
     }

@@ -68,7 +68,14 @@ pub fn router(state: AppState, shutdown: CancellationToken) -> Router {
     let openapi_json = serde_json::to_value(&openapi).expect("OpenAPI serialises");
 
     let mut allowed_hosts: Vec<String> = vec!["localhost".into(), "127.0.0.1".into(), "::1".into()];
-    allowed_hosts.extend(state.cfg.public_hosts.iter().filter(|h| !h.is_empty()).cloned());
+    allowed_hosts.extend(
+        state
+            .cfg
+            .public_hosts
+            .iter()
+            .filter(|h| !h.is_empty())
+            .cloned(),
+    );
     let mcp_state = state.clone();
     let mcp = StreamableHttpService::new(
         move || Ok(SiteMcp::new(mcp_state.clone())),
@@ -86,7 +93,10 @@ pub fn router(state: AppState, shutdown: CancellationToken) -> Router {
     let authed = Router::new()
         .nest("/v1", v1)
         .nest_service("/mcp", mcp)
-        .layer(middleware::from_fn_with_state(state.clone(), auth::authenticate));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth::authenticate,
+        ));
 
     let static_dir = &state.cfg.static_dir;
     let index = static_dir.join("index.html");
@@ -189,7 +199,11 @@ struct Beacon {
 /// as `text/plain` to avoid a CORS preflight) and answers 204.
 async fn collect(State(state): State<AppState>, req: Request) -> ApiResult<StatusCode> {
     let ip = auth::client_ip(&state, &req);
-    if !state.limiter.check(&format!("beacon:{ip}"), BEACON_POLICY).allowed {
+    if !state
+        .limiter
+        .check(&format!("beacon:{ip}"), BEACON_POLICY)
+        .allowed
+    {
         // Silently drop: a beacon cannot act on an error anyway.
         return Ok(StatusCode::NO_CONTENT);
     }
@@ -197,8 +211,8 @@ async fn collect(State(state): State<AppState>, req: Request) -> ApiResult<Statu
     let body = axum::body::to_bytes(req.into_body(), 4 * 1024)
         .await
         .map_err(|_| ApiError::BadRequest("body too large".into()))?;
-    let b: Beacon =
-        serde_json::from_slice(&body).map_err(|e| ApiError::BadRequest(format!("invalid JSON: {e}")))?;
+    let b: Beacon = serde_json::from_slice(&body)
+        .map_err(|e| ApiError::BadRequest(format!("invalid JSON: {e}")))?;
     let row = IngestEvent {
         kind: "pageview".into(),
         path: b.path,
@@ -233,10 +247,23 @@ async fn security_headers(State(state): State<AppState>, req: Request, next: Nex
     let path = req.uri().path().to_owned();
     let mut res = next.run(req).await;
     let h = res.headers_mut();
-    let csp = if path.starts_with("/docs") { CSP_DOCS } else { CSP_SITE };
-    h.insert(header::CONTENT_SECURITY_POLICY, HeaderValue::from_static(csp));
-    h.insert(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
-    h.insert(header::REFERRER_POLICY, HeaderValue::from_static("strict-origin-when-cross-origin"));
+    let csp = if path.starts_with("/docs") {
+        CSP_DOCS
+    } else {
+        CSP_SITE
+    };
+    h.insert(
+        header::CONTENT_SECURITY_POLICY,
+        HeaderValue::from_static(csp),
+    );
+    h.insert(
+        header::X_CONTENT_TYPE_OPTIONS,
+        HeaderValue::from_static("nosniff"),
+    );
+    h.insert(
+        header::REFERRER_POLICY,
+        HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
     h.insert(header::X_FRAME_OPTIONS, HeaderValue::from_static("DENY"));
     h.insert(
         HeaderName::from_static("permissions-policy"),
@@ -302,7 +329,10 @@ async fn http_metrics(req: Request, next: Next) -> Response {
 
 /// Periodic housekeeping: key reloads, quota flushes, bucket sweeps,
 /// contact-message retention.
-pub fn spawn_background(state: AppState, shutdown: CancellationToken) -> tokio::task::JoinHandle<()> {
+pub fn spawn_background(
+    state: AppState,
+    shutdown: CancellationToken,
+) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         let mut keys = tokio::time::interval(Duration::from_secs(30));
         let mut usage = tokio::time::interval(Duration::from_secs(5));
@@ -323,7 +353,7 @@ pub fn spawn_background(state: AppState, shutdown: CancellationToken) -> tokio::
                 }
                 _ = sweep.tick() => {
                     state.limiter.sweep(Duration::from_secs(3600));
-                    metrics::gauge!("rate_limiter_buckets").set(state.limiter.len() as f64);
+                    metrics::gauge!("rate_limiter_buckets").set(state.limiter.bucket_count() as f64);
                 }
                 _ = purge.tick() => {
                     match contact::purge_expired(&state.db, state.cfg.contact_retention_days).await {
@@ -342,10 +372,14 @@ pub fn spawn_background(state: AppState, shutdown: CancellationToken) -> tokio::
 }
 
 pub async fn open_db(url: &str) -> anyhow::Result<SqlitePool> {
-    use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+    use sqlx::sqlite::{
+        SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous,
+    };
     use std::str::FromStr;
 
-    if let Some(path) = url.strip_prefix("sqlite://").map(|p| p.split('?').next().unwrap_or(p))
+    if let Some(path) = url
+        .strip_prefix("sqlite://")
+        .map(|p| p.split('?').next().unwrap_or(p))
         && let Some(dir) = Path::new(path).parent()
         && !dir.as_os_str().is_empty()
     {
@@ -356,7 +390,10 @@ pub async fn open_db(url: &str) -> anyhow::Result<SqlitePool> {
         .journal_mode(SqliteJournalMode::Wal)
         .synchronous(SqliteSynchronous::Normal)
         .busy_timeout(Duration::from_secs(5));
-    let pool = SqlitePoolOptions::new().max_connections(8).connect_with(opts).await?;
+    let pool = SqlitePoolOptions::new()
+        .max_connections(8)
+        .connect_with(opts)
+        .await?;
     sqlx::migrate!("./migrations").run(&pool).await?;
     Ok(pool)
 }
