@@ -1,0 +1,22 @@
+{
+  "concurrency": null,
+  "duration_s": 30,
+  "events_per_request": 100,
+  "events_per_s": 100000.0,
+  "latency_ms": {
+    "max": 14.367,
+    "p50": 2.019,
+    "p90": 2.725,
+    "p99": 4.355,
+    "p999": 6.843
+  },
+  "mode": "open-loop",
+  "ok_rps": 1000.0,
+  "requests": 30000,
+  "rps": 1000.0,
+  "status": {
+    "202": 30000
+  },
+  "target_rps": 1000,
+  "url": "http://127.0.0.1:8080/v1/events"
+}

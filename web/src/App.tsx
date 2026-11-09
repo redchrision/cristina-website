@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, RefObject } from "react";
-import { CONTACT_ENDPOINT } from "./api";
+import { CONTACT_ENDPOINT, trackPageview } from "./api";
 import {
   BLOG_POSTS, BLOG_TAGS, PROJECTS, SPEAKER_TOPICS, TALKS, t, tagLabel,
 } from "./content";
@@ -1091,6 +1091,8 @@ export default function App() {
   );
   const ui = UI[lang];
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  // No-op unless built with VITE_ANALYTICS=on (see api.ts).
+  useEffect(() => { trackPageview(route, lang); }, [route]);
   useEffect(() => {
     let title = "Cristina DeLisle · " + (lang === "fr" ? "Ingénieure logiciel R&D" : "R&D Software Engineer");
     if (route === "#/blog") title = ui.blogTitle + " · Cristina DeLisle";
