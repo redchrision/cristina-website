@@ -1,18 +1,18 @@
 {
   "en": [
     "Building AI tools people can trust: provenance, verification, human review",
-    "Privacy by design: GDPR for engineers, from a former DPO",
+    "Privacy by design: GDPR for engineers",
     "Self-hosting and digital sovereignty in Europe",
     "Open source: communities, contribution, sustainability",
-    "Career changes into tech: from law to software engineering",
+    "Applied AI in practice: from prototype to production",
     "Women and underrepresented groups in tech"
   ],
   "fr": [
     "Construire des outils d'IA dignes de confiance : traçabilité, vérification, relecture humaine",
-    "La protection des données dès la conception : le RGPD pour les développeurs, par une ancienne DPO",
+    "La protection des données dès la conception : le RGPD pour les développeurs",
     "Auto-hébergement et souveraineté numérique en Europe",
     "Open source : communautés, contribution, pérennité",
-    "Se reconvertir dans la tech : du droit à l'ingénierie logicielle",
+    "L'IA appliquée en pratique : du prototype à la production",
     "Les femmes et les groupes sous-représentés dans la tech"
   ]
 }
