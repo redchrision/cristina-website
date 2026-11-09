@@ -11,7 +11,7 @@ use site_server::{
     quota::{DailyQuotas, RateLimiter},
 };
 use tokio_util::sync::CancellationToken;
-use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser)]
 #[command(version, about = "Backend for cristinadelisle.xyz")]
@@ -35,6 +35,12 @@ enum Cmd {
         database_url: String,
         #[command(subcommand)]
         cmd: KeysCmd,
+    },
+    /// Exit 0 if the server answers on /healthz (for container health checks;
+    /// the runtime image has no shell or curl).
+    Healthcheck {
+        #[arg(long, default_value = "http://127.0.0.1:8080/healthz")]
+        url: String,
     },
     /// Create the ClickHouse database and tables (idempotent; `serve` does
     /// this on startup too).
@@ -86,6 +92,15 @@ async fn main() -> anyhow::Result<()> {
     match cli.cmd {
         Cmd::Serve(cfg) => serve(*cfg).await,
         Cmd::Keys { database_url, cmd } => keys(&database_url, cmd).await,
+        Cmd::Healthcheck { url } => {
+            let res = reqwest::Client::new()
+                .get(&url)
+                .timeout(Duration::from_secs(3))
+                .send()
+                .await?;
+            anyhow::ensure!(res.status().is_success(), "{url} answered {}", res.status());
+            Ok(())
+        }
         Cmd::ClickhouseInit {
             url,
             database,
@@ -100,20 +115,74 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-fn init_tracing(format: LogFormat) {
+/// Keeps the OpenTelemetry provider alive; flushes spans on drop.
+struct TelemetryGuard {
+    #[cfg(feature = "otel")]
+    provider: Option<opentelemetry_sdk::trace::SdkTracerProvider>,
+}
+
+impl Drop for TelemetryGuard {
+    fn drop(&mut self) {
+        #[cfg(feature = "otel")]
+        if let Some(p) = self.provider.take() {
+            let _ = p.shutdown();
+        }
+    }
+}
+
+/// Logs to stdout (JSON in production); traces over OTLP/HTTP when
+/// `OTEL_EXPORTER_OTLP_ENDPOINT` is set (e.g. a Datadog Agent with OTLP
+/// ingestion enabled, or an OpenTelemetry Collector).
+fn init_tracing(format: LogFormat) -> anyhow::Result<TelemetryGuard> {
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,tower_http=info,sqlx=warn"));
-    let registry = tracing_subscriber::registry().with(filter);
-    match format {
-        LogFormat::Json => registry
-            .with(
-                tracing_subscriber::fmt::layer()
-                    .json()
-                    .flatten_event(true)
-                    .with_current_span(true),
+    let fmt = match format {
+        LogFormat::Json => tracing_subscriber::fmt::layer()
+            .json()
+            .flatten_event(true)
+            .with_current_span(true)
+            .boxed(),
+        LogFormat::Pretty => tracing_subscriber::fmt::layer().boxed(),
+    };
+
+    #[cfg(feature = "otel")]
+    {
+        use opentelemetry::trace::TracerProvider as _;
+        let provider = if std::env::var_os("OTEL_EXPORTER_OTLP_ENDPOINT").is_some() {
+            let exporter = opentelemetry_otlp::SpanExporter::builder()
+                .with_http()
+                .build()
+                .context("building OTLP exporter")?;
+            Some(
+                opentelemetry_sdk::trace::SdkTracerProvider::builder()
+                    .with_batch_exporter(exporter)
+                    .with_resource(
+                        opentelemetry_sdk::Resource::builder()
+                            .with_service_name("site-server")
+                            .build(),
+                    )
+                    .build(),
             )
-            .init(),
-        LogFormat::Pretty => registry.with(tracing_subscriber::fmt::layer()).init(),
+        } else {
+            None
+        };
+        let otel = provider
+            .as_ref()
+            .map(|p| tracing_opentelemetry::layer().with_tracer(p.tracer("site-server")));
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt)
+            .with(otel)
+            .init();
+        if provider.is_some() {
+            tracing::info!("exporting traces over OTLP");
+        }
+        Ok(TelemetryGuard { provider })
+    }
+    #[cfg(not(feature = "otel"))]
+    {
+        tracing_subscriber::registry().with(filter).with(fmt).init();
+        Ok(TelemetryGuard {})
     }
 }
 
@@ -142,7 +211,7 @@ fn install_metrics() -> anyhow::Result<PrometheusHandle> {
 }
 
 async fn serve(cfg: ServeConfig) -> anyhow::Result<()> {
-    init_tracing(cfg.log_format);
+    let _telemetry = init_tracing(cfg.log_format)?;
     let prom = install_metrics()?;
 
     let db = app::open_db(&cfg.database_url)

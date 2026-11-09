@@ -141,7 +141,10 @@ async fn main() -> anyhow::Result<()> {
                 let Ok(permit) = limit.clone().try_acquire_owned() else {
                     // Too many in flight: count as a client-side drop.
                     if scheduled >= measure_from {
-                        stats.lock().unwrap().record(10_000_000, "client_overload".into());
+                        stats
+                            .lock()
+                            .unwrap()
+                            .record(10_000_000, "client_overload".into());
                     }
                     continue;
                 };
@@ -166,7 +169,10 @@ async fn main() -> anyhow::Result<()> {
                         let status = send(&client, &args, seq).await;
                         seq += 1;
                         if t0 >= measure_from {
-                            stats.lock().unwrap().record(t0.elapsed().as_micros() as u64, status);
+                            stats
+                                .lock()
+                                .unwrap()
+                                .record(t0.elapsed().as_micros() as u64, status);
                         }
                     }
                 }));

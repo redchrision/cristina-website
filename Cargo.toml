@@ -5,7 +5,7 @@ members = ["server", "loadgen"]
 [workspace.package]
 edition = "2024"
 license = "MIT"
-rust-version = "1.89"
+rust-version = "1.94"
 
 [profile.release]
 lto = "thin"

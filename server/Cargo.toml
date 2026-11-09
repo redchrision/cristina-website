@@ -35,6 +35,17 @@ utoipa-axum = "0.3"
 utoipa-scalar = { version = "0.4", features = ["axum"] }
 uuid = { version = "1", features = ["v4", "v7"] }
 
+opentelemetry = { version = "0.33", optional = true }
+opentelemetry_sdk = { version = "0.33", features = ["rt-tokio"], optional = true }
+opentelemetry-otlp = { version = "0.33", default-features = false, features = ["trace", "http-proto", "reqwest-blocking-client"], optional = true }
+tracing-opentelemetry = { version = "0.34", optional = true }
+
+[features]
+default = ["otel"]
+# Export traces over OTLP/HTTP (Datadog Agent, OpenTelemetry Collector, ...)
+# when OTEL_EXPORTER_OTLP_ENDPOINT is set.
+otel = ["dep:opentelemetry", "dep:opentelemetry_sdk", "dep:opentelemetry-otlp", "dep:tracing-opentelemetry"]
+
 [dev-dependencies]
 http-body-util = "0.1"
 tower = { version = "0.5", features = ["util"] }
