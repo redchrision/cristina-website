@@ -133,7 +133,11 @@ async fn content_is_public_and_localised() {
     assert_eq!(s, StatusCode::OK);
     assert_eq!(h["api-version"], "1");
     assert!(h.contains_key("ratelimit-remaining"));
-    assert_eq!(body["data"][0]["name"], "Something is brewing");
+    assert_eq!(body["data"][0]["name"], "Calvad");
+    assert_eq!(
+        body["data"][0]["role"],
+        "Open source · Research prototype · In active development"
+    );
 
     let (s, _, body) = call(&app, get("/v1/posts/technovation-judge?lang=fr", None)).await;
     assert_eq!(s, StatusCode::OK);
