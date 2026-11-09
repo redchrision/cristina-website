@@ -129,9 +129,9 @@ const ABOUT = {
       ". Right now I'm building ", { hl: "Calvad" }, ", an open-source tool that extracts information from documents with AI, checks every answer against its source, and runs entirely on your own hardware.",
     ],
     [
-      "I enjoy the whole path from idea to production: understanding the problem, designing the system, shipping it, and checking how it holds up in real use. I'm also especially interested in ",
+      "I enjoy the whole path from idea to production: understanding the problem, designing the system, shipping it, and checking how it holds up in real use. I'm also interested in ",
       { hl: "applied AI" },
-      ": turning language models into reliable product features, with retrieval, verification and human review built in. I trained in computer science at ",
+      " and how to make it reliable. I trained in computer science at ",
       { hl: "Georgia Tech (MSc, specialised in AI)" },
       " and the University of London (BSc).",
     ],
@@ -153,9 +153,9 @@ const ABOUT = {
       ". En ce moment, je construis ", { hl: "Calvad" }, ", un outil open source qui extrait des informations de documents grâce à l'IA, vérifie chaque réponse dans sa source, et tourne entièrement sur votre propre matériel.",
     ],
     [
-      "J'aime tout le chemin de l'idée à la production : comprendre le problème, concevoir le système, le livrer, et vérifier qu'il tient en conditions réelles. Je m'intéresse aussi tout particulièrement à l'",
+      "J'aime tout le chemin de l'idée à la production : comprendre le problème, concevoir le système, le livrer, et vérifier qu'il tient en conditions réelles. Je m'intéresse aussi à l'",
       { hl: "IA appliquée" },
-      " : transformer des modèles de langage en fonctionnalités fiables, avec recherche documentaire, vérification et relecture humaine intégrées. Je me suis formée en informatique à ",
+      " et à la manière de la rendre fiable. Je me suis formée en informatique à ",
       { hl: "Georgia Tech (MSc, spécialisé en IA)" },
       " et à l'Université de Londres (BSc).",
     ],
