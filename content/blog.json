@@ -1,0 +1,183 @@
+{
+  "tags": [
+    "hackathons",
+    "personal development",
+    "soft skills",
+    "hard skills",
+    "events",
+    "learning",
+    "open source",
+    "communities",
+    "videos"
+  ],
+  "tagLabels": {
+    "fr": {
+      "hackathons": "hackathons",
+      "personal development": "développement personnel",
+      "soft skills": "soft skills",
+      "hard skills": "hard skills",
+      "events": "événements",
+      "learning": "apprentissage",
+      "open source": "open source",
+      "communities": "communautés",
+      "videos": "vidéos"
+    }
+  },
+  "posts": [
+    {
+      "slug": "technovation-judge",
+      "date": {
+        "en": "July 2026",
+        "fr": "Juillet 2026"
+      },
+      "title": {
+        "en": "Judging Technovation Girls, as a rehabilitated perfectionist",
+        "fr": "Juger Technovation Girls, en perfectionniste réhabilitée"
+      },
+      "tags": [
+        "communities",
+        "events",
+        "personal development"
+      ],
+      "excerpt": {
+        "en": "My first time reviewing projects built by founders aged 8 to 18, and what a competition-nerd childhood taught me about what actually stays.",
+        "fr": "Ma première fois à évaluer des projets construits par des fondatrices de 8 à 18 ans, et ce qu'une enfance d'accro aux compétitions m'a appris sur ce qui reste vraiment."
+      },
+      "body": {
+        "en": [
+          {
+            "t": "p",
+            "x": "This season I had the opportunity to be a judge for the Technovation Girls competition, in the quarterfinals and the semifinals. It was the first time I interacted with projects built by such young founders: the participants are aged 8 to 18, from primary school all the way to the end of high school."
+          },
+          {
+            "t": "p",
+            "x": "I remember when I was a girl that age and I first interacted with a computer. Back then, in the early 2000s, we had Turbo Pascal and dark terminal screens to look at, with the goal of solving maths-like problems with code. The only more interactive thing was building some HTML websites and adding some coloured elements. It's amazing how far we've come since then; things are way more rewarding now in terms of what you can dream to build."
+          },
+          {
+            "t": "p",
+            "x": "Off the top of my head, one project that stayed with me was an app controlling a belt that had sensors to detect movement, built to help users with motor difficulties. In fact, most of the projects had a strong social component: from fighting against school bullying to democratising access to education."
+          },
+          {
+            "t": "h2",
+            "x": "What actually stays"
+          },
+          {
+            "t": "p",
+            "x": "The teams showed iterative development, testing with real users, and documented their learning journeys. But probably the most impressive thing for me was to see how much team cohesion there was in the pitch presentations. The girls looked like they had a great time building together, and I especially appreciated how all of the team members took their turn to present a part of the project. I think these are the kind of memories that last in time, regardless of who wins the competition or who gets more points."
+          },
+          {
+            "t": "p",
+            "x": "As a rehabilitated perfectionist and former competition nerd, I used to compete too when I was a girl, and, as you might imagine, that involved a lot of losing, apart from the times I was winning, of course. I was sad to lose, even when I got second place; that somehow made it even worse, because of all the visibility of losing right next to the first place."
+          },
+          {
+            "t": "p",
+            "x": "As time passed, I hardly remember the wins. The second places turned from 'public loser no. 1' into 'vice-champion', and, as you might imagine, nobody else cares whether I won or lost. What mattered was how each experience contributed to my growth: the takeaways, and memories exactly like these videos of girls presenting their project together, taking turns."
+          },
+          {
+            "t": "h2",
+            "x": "What I took home as a judge"
+          },
+          {
+            "t": "p",
+            "x": "It was a learning journey for me too: judging taught me to offer feedback using the BOOST model (Balanced, Objective, Observed, Specific, Timely). Address both the strengths and the areas to develop, stay grounded in the rubric rather than personal preference, comment on what you actually observed in the submission, and be specific enough that the team knows exactly what you meant, especially since they can't ask follow-up questions."
+          },
+          {
+            "t": "p",
+            "x": "That last constraint changed how I think about feedback well beyond the competition. Most of the feedback we give in our work (code reviews, grant reviews, comments on a draft) is read in our absence too. Writing it as if the other person cannot ask follow-up questions is a good discipline for making it stand on its own."
+          },
+          {
+            "t": "p",
+            "x": "I'm in awe of the work behind Technovation. It's exactly the kind of community initiative that brings together girls in tech and motivates them to shine and thrive. If you work in tech and have a few hours to give, consider judging next season."
+          }
+        ],
+        "fr": [
+          {
+            "t": "p",
+            "x": "Cette saison, j'ai eu l'opportunité d'être jurée pour le concours Technovation Girls, en quarts de finale et en demi-finales. C'était la première fois que j'interagissais avec des projets construits par des fondatrices aussi jeunes : les participantes ont entre 8 et 18 ans, de l'école primaire jusqu'à la fin du lycée."
+          },
+          {
+            "t": "p",
+            "x": "Je me souviens de l'époque où, petite fille de cet âge, j'ai interagi pour la première fois avec un ordinateur. À l'époque, au début des années 2000, nous avions Turbo Pascal et des écrans de terminal sombres à regarder, avec pour objectif de résoudre des problèmes de type mathématique avec du code. La seule chose un peu plus interactive était de construire des sites HTML et d'y ajouter quelques éléments colorés. C'est incroyable le chemin parcouru depuis ; ce que l'on peut rêver de construire aujourd'hui est tellement plus gratifiant."
+          },
+          {
+            "t": "p",
+            "x": "De mémoire, un projet qui m'a marquée était une application contrôlant une ceinture équipée de capteurs de mouvement, conçue pour aider les personnes ayant des difficultés motrices. En réalité, la plupart des projets avaient une forte composante sociale : de la lutte contre le harcèlement scolaire à la démocratisation de l'accès à l'éducation."
+          },
+          {
+            "t": "h2",
+            "x": "Ce qui reste vraiment"
+          },
+          {
+            "t": "p",
+            "x": "Les équipes ont montré un développement itératif, des tests avec de vraies utilisatrices, et ont documenté leurs parcours d'apprentissage. Mais le plus impressionnant pour moi a été de voir la cohésion d'équipe dans les présentations. Les filles avaient l'air de passer un très bon moment à construire ensemble, et j'ai particulièrement apprécié que chaque membre de l'équipe prenne son tour pour présenter une partie du projet. Je crois que ce sont ces souvenirs-là qui durent, peu importe qui gagne le concours ou qui obtient le plus de points."
+          },
+          {
+            "t": "p",
+            "x": "En perfectionniste réhabilitée et ancienne accro aux compétitions, je concourais moi aussi quand j'étais petite et, comme vous pouvez l'imaginer, cela impliquait beaucoup de défaites, à part, bien sûr, les fois où je gagnais. J'étais triste de perdre, même en finissant deuxième ; c'était presque pire, à cause de toute la visibilité de la défaite juste à côté de la première place."
+          },
+          {
+            "t": "p",
+            "x": "Avec le temps, je me souviens à peine des victoires. Les deuxièmes places sont passées de « perdante publique n°1 » à « vice-championne » et, comme vous pouvez l'imaginer, personne d'autre ne se soucie de savoir si j'ai gagné ou perdu. Ce qui comptait, c'est ce que chaque expérience a apporté à ma progression : les enseignements, et des souvenirs exactement comme ces vidéos de filles présentant leur projet ensemble, chacune à son tour."
+          },
+          {
+            "t": "h2",
+            "x": "Ce que j'ai retenu en tant que jurée"
+          },
+          {
+            "t": "p",
+            "x": "Ce fut aussi un parcours d'apprentissage pour moi : être jurée m'a appris à donner du feedback avec le modèle BOOST : Balanced, Objective, Observed, Specific, Timely (équilibré, objectif, observé, spécifique, au bon moment). Aborder à la fois les forces et les axes de progression, rester ancrée dans la grille d'évaluation plutôt que dans ses préférences personnelles, commenter ce que l'on a réellement observé dans la soumission, et être suffisamment précise pour que l'équipe sache exactement ce que l'on voulait dire, d'autant qu'elle ne peut pas poser de questions de suivi."
+          },
+          {
+            "t": "p",
+            "x": "Cette dernière contrainte a changé ma façon de penser le feedback bien au-delà du concours. La plupart des retours que nous donnons dans notre travail (revues de code, évaluations de dossiers, commentaires sur un brouillon) sont eux aussi lus en notre absence. Les écrire comme si l'autre personne ne pouvait pas poser de questions de suivi est une bonne discipline pour qu'ils tiennent debout tout seuls."
+          },
+          {
+            "t": "p",
+            "x": "Je suis admirative du travail derrière Technovation. C'est exactement le genre d'initiative communautaire qui rassemble les filles dans la tech et les motive à briller et à s'épanouir. Si vous travaillez dans la tech et avez quelques heures à donner, pensez à devenir juré ou jurée la saison prochaine."
+          }
+        ]
+      }
+    },
+    {
+      "slug": "example-post",
+      "date": {
+        "en": "Coming soon",
+        "fr": "Bientôt"
+      },
+      "title": {
+        "en": "Placeholder: your next piece of thought",
+        "fr": "Exemple : votre prochain morceau de pensée"
+      },
+      "tags": [
+        "open source",
+        "learning"
+      ],
+      "excerpt": {
+        "en": "A placeholder entry showing how posts appear: duplicate this object in BLOG_POSTS, give it a slug, tags, and an en/fr body.",
+        "fr": "Un article d'exemple montrant le rendu : dupliquez cet objet dans BLOG_POSTS avec un slug, des tags et un contenu en/fr."
+      },
+      "body": {
+        "en": [
+          {
+            "t": "p",
+            "x": "This is a placeholder post. Duplicate the object in BLOG_POSTS, set a unique slug, choose tags from BLOG_TAGS, and write the body in both languages."
+          },
+          {
+            "t": "p",
+            "x": "For video content: publish the video on PeerTube/YouTube, then create a post like this with a link or embed plus a few paragraphs of context, tagged 'videos'."
+          }
+        ],
+        "fr": [
+          {
+            "t": "p",
+            "x": "Ceci est un article d'exemple. Dupliquez l'objet dans BLOG_POSTS, définissez un slug unique, choisissez des tags dans BLOG_TAGS, et rédigez le contenu dans les deux langues."
+          },
+          {
+            "t": "p",
+            "x": "Pour du contenu vidéo : publiez la vidéo sur PeerTube/YouTube, puis créez un article comme celui-ci avec un lien ou une intégration et quelques paragraphes de contexte, avec le tag « vidéos »."
+          }
+        ]
+      }
+    }
+  ]
+}

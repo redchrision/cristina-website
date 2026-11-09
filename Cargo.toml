@@ -1,0 +1,13 @@
+[workspace]
+resolver = "3"
+members = ["server", "loadgen"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+rust-version = "1.89"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

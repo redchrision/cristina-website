@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, RefObject } from "react";
+import { CONTACT_ENDPOINT } from "./api";
+import {
+  BLOG_POSTS, BLOG_TAGS, PROJECTS, SPEAKER_TOPICS, TALKS, t, tagLabel,
+} from "./content";
+import type { Lang } from "./content";
+
+type Theme = "light" | "dark";
 
 /* ============================================================
    CRISTINA DELISLE — PORTFOLIO v7 · bilingual EN/FR
    ------------------------------------------------------------
    - Language toggle (top right), default follows the browser.
    - The unnamed project stays unnamed: a teaser, no name, no repo.
-   - Content lives in the constants below. Bilingual fields are
-     objects { en: "...", fr: "..." }.
+   - Projects, talks and blog posts live in /content/*.json (shared
+     with the Rust API). UI strings, About and Legal live below.
+     Bilingual fields are objects { en: "...", fr: "..." }.
    Routes: #/ home · #/blog · #/blog/:slug · #/legal
    ============================================================ */
 
@@ -17,11 +26,7 @@ const LINKS = {
   linkedin: "https://www.linkedin.com/in/cristina-delisle-10848029/",
   mastodon: "https://mastodon.social/@redchrision",
   email: "cristina@cjdns.fr",
-  contactEndpoint: "",
 };
-
-/* pick a bilingual value */
-const t = (v, lang) => (typeof v === "string" ? v : v[lang]);
 
 /* ---------- UI strings ---------- */
 const UI = {
@@ -33,9 +38,9 @@ const UI = {
     cvLabel: "Request my CV", cvSubject: "CV request",
     secAbout: "About", secProjects: "Projects", secTalks: "Talks", secMentorship: "Mentorship", secContact: "Get in touch",
     demo: "Demo ↗", repo: "Repository ↗", watch: "View the talk ↗",
-    showEarlier: (n) => `Show ${n} earlier talk${n > 1 ? "s" : ""}`,
+    showEarlier: (n: number) => `Show ${n} earlier talk${n > 1 ? "s" : ""}`,
     hideEarlier: "Show recent talks only",
-    seeMoreProjects: (n) => `See ${n} more project${n > 1 ? "s" : ""}`,
+    seeMoreProjects: (n: number) => `See ${n} more project${n > 1 ? "s" : ""}`,
     seeFewerProjects: "See fewer projects",
     inviteTitle: "Invite me to speak", inviteTopics: "Topics I speak about:", inviteBtn: "Invite me ↗", inviteSubject: "Speaking invitation",
     mentorTitle: "One hour, every three months: for women in tech",
@@ -53,6 +58,7 @@ const UI = {
     eName: "Please enter your name.", eEmail: "Please enter a valid email address.", eMsg: "Please write a few words about your request.",
     sent: "Thank you, your message has been sent. I usually reply within two working days.",
     send: "Send message", sending: "Sending…",
+    sendFail: "Sorry, the message could not be sent. Please try again, or write to me directly at",
     formNote: ["Sent directly to me, never shared. See the ", "privacy notice", "."],
     colophon: "Designed and built by Cristina DeLisle. Made with React, hosted in Europe. No cookies, no trackers.",
     legalLink: "Mentions légales & privacy",
@@ -72,9 +78,9 @@ const UI = {
     cvLabel: "Demander mon CV", cvSubject: "Demande de CV",
     secAbout: "À propos", secProjects: "Projets", secTalks: "Conférences", secMentorship: "Mentorat", secContact: "Me contacter",
     demo: "Démo ↗", repo: "Dépôt ↗", watch: "Voir la conférence ↗",
-    showEarlier: (n) => `Voir ${n} conférence${n > 1 ? "s" : ""} plus ancienne${n > 1 ? "s" : ""}`,
+    showEarlier: (n: number) => `Voir ${n} conférence${n > 1 ? "s" : ""} plus ancienne${n > 1 ? "s" : ""}`,
     hideEarlier: "N'afficher que les récentes",
-    seeMoreProjects: (n) => `Voir ${n} projet${n > 1 ? "s" : ""} de plus`,
+    seeMoreProjects: (n: number) => `Voir ${n} projet${n > 1 ? "s" : ""} de plus`,
     seeFewerProjects: "Voir moins de projets",
     inviteTitle: "Invitez-moi à intervenir", inviteTopics: "Sujets sur lesquels j'interviens :", inviteBtn: "M'inviter ↗", inviteSubject: "Invitation à une conférence",
     mentorTitle: "Une heure par trimestre : pour les femmes dans la tech",
@@ -92,6 +98,7 @@ const UI = {
     eName: "Veuillez saisir votre nom.", eEmail: "Veuillez saisir une adresse e-mail valide.", eMsg: "Veuillez écrire quelques mots sur votre demande.",
     sent: "Merci, votre message a bien été envoyé. Je réponds généralement sous deux jours ouvrés.",
     send: "Envoyer", sending: "Envoi…",
+    sendFail: "Désolée, le message n'a pas pu être envoyé. Réessayez, ou écrivez-moi directement à",
     formNote: ["Votre message m'arrive directement et n'est jamais partagé. Voir la ", "politique de confidentialité", "."],
     colophon: "Conçu et développé par Cristina DeLisle. Fait avec React, hébergé en Europe. Sans cookies, sans traceurs.",
     legalLink: "Mentions légales & confidentialité",
@@ -104,6 +111,10 @@ const UI = {
     themeToLight: "Passer en mode clair", themeToDark: "Passer en mode sombre",
   },
 };
+
+type UIStrings = (typeof UI)[Lang];
+interface UIProps { ui: UIStrings }
+interface PageProps extends UIProps { lang: Lang }
 
 /* ---------- About ----------
    Paragraphs are arrays of segments; { hl: "..." } renders highlighted. */
@@ -157,379 +168,6 @@ const ABOUT = {
     ],
   ],
 };
-
-/* ---------- Projects ----------
-   Order matters: the first VISIBLE_PROJECTS show by default,
-   the rest sit behind "See more". */
-const PROJECTS = [
-  {
-    mystery: true,
-    name: { en: "Something is brewing", fr: "Quelque chose se prépare" },
-    role: { en: "In the lab · Open source", fr: "Au labo · Open source" },
-    blurb: {
-      en: "A new open-source tool for professionals bound by confidentiality, built to run entirely on your own hardware. No name, no repo, no screenshots yet. The reveal comes when it's ready.",
-      fr: "Un nouvel outil open source pour les professions soumises au secret professionnel, conçu pour tourner entièrement sur votre propre matériel. Pas de nom, pas de dépôt, pas de captures d'écran pour l'instant. Tout sera dévoilé quand ce sera prêt.",
-    },
-    tags: ["Open source", "AI", { en: "Self-hosted", fr: "Auto-hébergé" }],
-    links: [
-      { label: "Mastodon ↗", href: LINKS.mastodon },
-      { label: { en: "Blog →", fr: "Blog →" }, href: "#/blog" },
-    ],
-  },
-  {
-    name: "Instructor Deployable",
-    role: { en: "Built as a Research Assistant at Georgia Tech's Design & Intelligence Lab", fr: "Développé en tant qu'assistante de recherche au Design & Intelligence Lab de Georgia Tech" },
-    blurb: {
-      en: "A React application built for deployment in real classrooms, letting instructors interact with Jill Watson, the lab's AI teaching assistant. React frontend hosted on AWS (S3), Python backend.",
-      fr: "Une application React conçue pour être déployée dans de vraies salles de classe, permettant aux enseignants d'interagir avec Jill Watson, l'assistante pédagogique IA du laboratoire. Frontend React hébergé sur AWS (S3), backend Python.",
-    },
-    tags: ["React", "Python", "AWS", "AI"],
-    links: [],
-  },
-  {
-    name: "PICO Scholar",
-    role: { en: "2nd place · Red Hat & Intel AI hackathon", fr: "2ᵉ place · hackathon IA Red Hat & Intel" },
-    blurb: {
-      en: "Document extraction for systematic literature reviews, structuring research papers into the PICO framework.",
-      fr: "Extraction documentaire pour les revues systématiques de littérature, structurant les articles de recherche selon le cadre PICO.",
-    },
-    tags: ["AI", "Python", { en: "Hackathon", fr: "Hackathon" }],
-    links: [{ label: { en: "Repository ↗", fr: "Dépôt ↗" }, href: LINKS.github }],
-  },
-  {
-    name: { en: "Eurovision Votes Analysis", fr: "Analyse des votes de l'Eurovision" },
-    role: { en: "Data analysis", fr: "Analyse de données" },
-    blurb: {
-      en: "A study of the correlation between jury votes and televotes in Eurovision 2021: what drives the two voting blocs apart.",
-      fr: "Une étude de la corrélation entre les votes des jurys et le télévote à l'Eurovision 2021 : ce qui sépare les deux blocs de vote.",
-    },
-    tags: ["Python", "Pandas", "Data"],
-    links: [
-      { label: { en: "Demo ↗", fr: "Démo ↗" }, href: "https://youtu.be/dUr9yGYLbmY" },
-      { label: { en: "Repository ↗", fr: "Dépôt ↗" }, href: "https://github.com/redchrision/EurovisionVotesAnalysis" },
-    ],
-  },
-  {
-    name: "OtoDecks",
-    role: { en: "Audio application", fr: "Application audio" },
-    blurb: {
-      en: "A DJ mixing application with a custom GUI: dual players, tempo and volume control, and an integrated track library.",
-      fr: "Une application de mixage DJ avec interface personnalisée : double platine, contrôle du tempo et du volume, et bibliothèque de morceaux intégrée.",
-    },
-    tags: ["C++", "JUCE", "Audio"],
-    links: [
-      { label: { en: "Demo ↗", fr: "Démo ↗" }, href: "https://www.youtube.com/watch?v=03jPQ5GgG-8" },
-      { label: { en: "Repository ↗", fr: "Dépôt ↗" }, href: "https://github.com/redchrision/OtoDecks" },
-    ],
-  },
-  {
-    name: "Webcam Piano",
-    role: { en: "Computer vision", fr: "Vision par ordinateur" },
-    blurb: {
-      en: "A computer-vision instrument: movement captured by the webcam becomes music, live in the browser.",
-      fr: "Un instrument de vision par ordinateur : les mouvements captés par la webcam deviennent de la musique, en direct dans le navigateur.",
-    },
-    tags: ["JavaScript", { en: "Computer vision", fr: "Vision par ordinateur" }],
-    links: [
-      { label: { en: "Demo ↗", fr: "Démo ↗" }, href: "https://www.youtube.com/watch?v=C3OMeTqs-vI" },
-      { label: { en: "Repository ↗", fr: "Dépôt ↗" }, href: "https://github.com/redchrision/WebcamPlayer" },
-    ],
-  },
-];
-
-/* ---------- Talks ----------
-   Newest first. The first 4 show by default; the rest sit behind
-   "Show earlier talks". Items marked [VERIFY] need your check.  */
-const TALKS = [
-  {
-    year: "2026", lang: "FR",
-    event: "[Event name to fill] · Women's Day 2026",
-    title: "Shaping AI through women's lenses (panel)",
-    theme: { en: "AI & society", fr: "IA & société" },
-    description: {
-      en: "Panel discussion held in French for International Women's Day 2026, on how women's perspectives should shape the direction of AI.",
-      fr: "Table ronde en français pour la Journée internationale des droits des femmes 2026, sur la manière dont le regard des femmes doit façonner l'avenir de l'IA.",
-    },
-    // [VERIFY] Link assignment: I could not open the two YouTube links
-    // (rate-limited) — confirm this one is the panel recording.
-    link: "https://www.youtube.com/watch?v=D50QFNkxtLQ&t=767s",
-  },
-  {
-    year: "2025", lang: "EN",
-    event: "[Conference name to fill]",
-    title: "Dark patterns in design, with examples from AI and blockchains",
-    theme: { en: "Design & ethics", fr: "Design & éthique" },
-    description: {
-      en: "How deceptive design patterns show up in modern products, with concrete examples drawn from AI interfaces and blockchain ecosystems.",
-      fr: "Comment les dark patterns se manifestent dans les produits modernes, avec des exemples concrets tirés des interfaces d'IA et des écosystèmes blockchain.",
-    },
-    // [VERIFY] Confirm this is the dark-patterns recording.
-    link: "https://www.youtube.com/watch?v=L4072igI8j0",
-  },
-  {
-    year: "2025", lang: "EN",
-    event: "FOSDEM · Brussels · Open Research devroom",
-    title: "PICO Scholar: Advancing Open Research with an Open-Source AI Platform",
-    theme: { en: "AI & open source", fr: "IA & open source" },
-    description: {
-      en: "Co-presented with Matias Vizcaino: an open-source AI platform to make systematic literature reviews faster, more accurate and open to all.",
-      fr: "Co-présenté avec Matias Vizcaino : une plateforme d'IA open source pour rendre les revues systématiques de littérature plus rapides, plus précises et ouvertes à tous.",
-    },
-    abstract:
-      "PICO Scholar is an open-source project at the proof-of-concept stage, developed by a team from Georgia Tech's Master in Computer Science program with early guidance from Robert Gordon University. Recently recognized with a 2nd place finish at the Red Hat & Intel AI Hackathon, PICO Scholar aims to tackle the growing challenge of sifting through massive, fast-evolving literature, whether in healthcare, engineering, or education. Traditional search tools often struggle with specialized terminology, inconsistent metadata, and a lack of transparent workflows. By integrating domain-adaptive AI and real-time collaboration features, the platform offers a more robust, efficient way for researchers to discover, analyze, and evaluate relevant studies.",
-    link: "https://archive.fosdem.org/2025/schedule/event/fosdem-2025-6129-pico-scholar-advancing-open-research-with-an-open-source-ai-platform/",
-  },
-  {
-    year: "2025", lang: "EN",
-    event: "Red Hat Developer · Online",
-    title: "Red Hat & Intel AI Hackathon 2024: winners' showcase (PICO Scholar, 2nd place)",
-    theme: { en: "AI & open source", fr: "IA & open source" },
-    description: {
-      en: "Winners' session presenting PICO Scholar, our RAG application built on Red Hat OpenShift AI with Intel Xeon AMX, awarded 2nd place at the 2024 hackathon.",
-      fr: "Session des lauréats présentant PICO Scholar, notre application RAG construite sur Red Hat OpenShift AI avec Intel Xeon AMX, 2ᵉ place au hackathon 2024.",
-    },
-    link: "https://www.youtube.com/live/LM9vruvPM9M",
-  },
-  {
-    year: "2021", lang: "EN",
-    event: "EC · NGI0 Liaison webinar · Online",
-    title: "ActivityPub for Administrations",
-    theme: { en: "Decentralised web", fr: "Web décentralisé" },
-    description: {
-      en: "Presentation for EU representatives on what ActivityPub and the fediverse can offer public administrations, prepared through collaborative community consensus.",
-      fr: "Présentation destinée aux représentants de l'UE sur ce qu'ActivityPub et le fédiverse peuvent apporter aux administrations publiques, préparée en concertation avec la communauté.",
-    },
-    link: "https://conf.tube/w/914a0bd6-9a4d-4bd4-b560-41fe9d0bbe69",
-  },
-  {
-    year: "2020", lang: "EN",
-    event: "ActivityPub Conference · Online",
-    title: "An analysis of privacy design principles as applied to decentralised systems",
-    theme: { en: "Privacy & decentralised web", fr: "Vie privée & web décentralisé" },
-    description: {
-      en: "How established privacy design principles map onto decentralised architectures: where they fit naturally, and where they strain.",
-      fr: "Comment les grands principes du privacy by design s'appliquent aux architectures décentralisées : là où ils s'ajustent naturellement, et là où ça coince.",
-    },
-    link: "https://conf.tube/w/a0196813-fb0d-4740-a37a-5f2b1fd1e774",
-  },
-  {
-    year: "2020", lang: "EN",
-    event: "FOSDEM · Brussels · Legal & Policy devroom",
-    title: "Technology challenges for privacy: the case of decentralised social media",
-    theme: { en: "Privacy & decentralised web", fr: "Vie privée & web décentralisé" },
-    description: {
-      en: "The advantages and challenges of decentralised social media, seen through data protection law and privacy architectural strategies.",
-      fr: "Les atouts et les défis des réseaux sociaux décentralisés, vus à travers le prisme de la protection des données et des stratégies d'architecture de la vie privée.",
-    },
-    abstract:
-      "As decentralized social media gathers more users, the privacy by design and default principles from the GDPR are in accordance with the design model it proposes. This talk tackles the main advantages and challenges this approach brings, from the perspective of data protection legislation and privacy architectural strategies, including data separation as a core strategy, and blockchain- and ActivityPub-based networks as the leading examples.",
-    link: "https://archive.fosdem.org/2020/schedule/event/challenges_for_privacy/",
-  },
-  {
-    year: "2019", lang: "EN",
-    event: "O'Reilly Software Architecture · Berlin",
-    title: "OSS shaping the future of data protection compliance",
-    theme: { en: "Privacy & open source", fr: "Vie privée & open source" },
-    description: {
-      en: "How the open-source ecosystem is shaping what practical data-protection compliance looks like.",
-      fr: "Comment l'écosystème open source façonne, dans la pratique, la conformité en matière de protection des données.",
-    },
-    link: "https://www.oreilly.com/library/view/oreilly-software-architecture/9781492050728/video328577.html",
-  },
-  {
-    year: "2019", lang: "EN",
-    event: "Percona Live Europe · Amsterdam",
-    title: "Shaping the Future of Privacy & Data Protection",
-    theme: { en: "Privacy & open source", fr: "Vie privée & open source" },
-    description: {
-      en: "A look at where privacy and data protection are heading, for an audience of open-source database engineers.",
-      fr: "Un regard sur l'avenir de la vie privée et de la protection des données, pour un public d'ingénieurs de bases de données open source.",
-    },
-    link: "https://www.percona.com/blog/security-matters-at-percona-live-europe-2019/",
-  },
-  {
-    year: "2019", lang: "EN",
-    event: "ActivityPub Conference · Prague",
-    title: "OSS compliance with privacy by default and design",
-    theme: { en: "Privacy & decentralised web", fr: "Vie privée & web décentralisé" },
-    description: {
-      en: "What privacy by default and by design mean concretely for open-source and federated projects.",
-      fr: "Ce que le privacy by design et le privacy by default signifient concrètement pour les projets open source et fédérés.",
-    },
-    link: "https://archive.org/details/apconf-talks",
-  },
-  {
-    year: "2019", lang: "EN",
-    event: "Pas Sage en Seine · Paris",
-    title: "OSS shaping the future of privacy",
-    theme: { en: "Privacy & open source", fr: "Vie privée & open source" },
-    description: {
-      en: "Open source as the natural home of privacy-preserving technology, at the Parisian hacker culture festival.",
-      fr: "L'open source comme terrain naturel des technologies protectrices de la vie privée, au festival parisien de la culture hacker.",
-    },
-    link: "https://programme.passageenseine.fr/table/",
-  },
-  {
-    year: "2019", lang: "EN",
-    event: "FOSDEM · Brussels · Legal & Policy devroom",
-    title: "Open source in the quest for GDPR compliance",
-    theme: { en: "Privacy & open source", fr: "Vie privée & open source" },
-    description: {
-      en: "How the GDPR's principles connect to the open-source ecosystem, and how rights and responsibilities are shared between communities and their infrastructure providers.",
-      fr: "Comment les principes du RGPD se connectent à l'écosystème open source, et comment droits et responsabilités se répartissent entre les communautés et leurs hébergeurs d'infrastructure.",
-    },
-    abstract:
-      "The OSS field has as core value the concept of community. Not surprisingly, a lot of OSS projects revolve around privacy, anonymity and data protection. This talk analyses how the provisions of the GDPR are tangential to the OSS ecosystem: how its principles connect to the OSS world, how the data controller / data processor model maps to OSS participants and infrastructure providers, and how data-protection rights are enforced by the OSS model, through technologies such as wikis and zero-knowledge collaborative software.",
-    link: "https://archive.fosdem.org/2019/schedule/event/open_source_gdpr/",
-  },
-  {
-    year: "2018", lang: "EN",
-    event: "EOLE · Paris Open Source Summit",
-    title: "Epic fails and good practices in the quest for GDPR compliance",
-    theme: { en: "Privacy & compliance", fr: "Vie privée & conformité" },
-    description: {
-      en: "Lessons from the field: what went wrong and what worked in real GDPR compliance efforts.",
-      fr: "Leçons du terrain : ce qui a échoué et ce qui a fonctionné dans de vrais chantiers de conformité RGPD.",
-    },
-    link: "https://eolevent.eu/eole-2018-compliance-conformance-processes-time-mainstream-open-source",
-  },
-  {
-    year: "2018", lang: "EN",
-    event: "OW2con · Paris",
-    title: "On GDPR compliance, the Right to be Forgotten and Artificial Intelligence",
-    theme: { en: "Privacy & AI", fr: "Vie privée & IA" },
-    description: {
-      en: "Where the right to be forgotten meets machine learning, and why deletion is harder than it sounds.",
-      fr: "Là où le droit à l'oubli rencontre le machine learning, et pourquoi la suppression est plus difficile qu'il n'y paraît.",
-    },
-    link: "https://www.ow2con.org/view/2018/Videos",
-  },
-  {
-    year: "2018", lang: "EN",
-    event: "Codecamp · Iași",
-    title: "On GDPR compliance, AI and the Right to be Forgotten",
-    theme: { en: "Privacy & AI", fr: "Vie privée & IA" },
-    description: {
-      en: "The Romanian edition of the right-to-be-forgotten-meets-AI talk, for one of the country's largest developer conferences.",
-      fr: "La version roumaine du talk sur le droit à l'oubli et l'IA, donnée à l'une des plus grandes conférences de développeurs du pays.",
-    },
-    link: "https://www.facebook.com/CodecampRO/photos/t.532724879/1633097680061320/?type=3",
-  },
-  {
-    year: "2018", lang: "EN",
-    event: "FOSDEM · Brussels · Legal & Policy devroom",
-    title: "Artificial intelligence dealing with the right to be forgotten",
-    theme: { en: "Privacy & AI", fr: "Vie privée & IA" },
-    description: {
-      en: "Human memory forgets; machine learning doesn't. What the right to be forgotten can even mean for AI systems, de lege lata and de lege ferenda.",
-      fr: "La mémoire humaine oublie ; le machine learning, non. Ce que le droit à l'oubli peut bien signifier pour les systèmes d'IA, de lege lata et de lege ferenda.",
-    },
-    abstract:
-      "The right to be forgotten encounters difficulties in defining its applicability in the context of continuous tech evolution. AI development particularly raises problems due to the nature of machine learning and the differences between the memory processes of humans and AI systems. This talk analyses the right to be forgotten as a concept and its juridical nature, compares psychological memory with how AI systems 'remember', asks when deletion can be considered an act of forgetting, and explores potential legal and policy adaptations to current statutory law.",
-    link: "https://archive.fosdem.org/2018/schedule/event/ai_right_to_be_forgotten/",
-  },
-  {
-    year: "2017", lang: "EN",
-    event: "34C3 · Chaos Communication Congress · Leipzig",
-    title: "A look at the debate regarding the right to Internet access (lightning talk)",
-    theme: { en: "Digital rights", fr: "Droits numériques" },
-    description: {
-      en: "A lightning talk at the Chaos Communication Congress on whether Internet access should be recognised as a right.",
-      fr: "Un lightning talk au Chaos Communication Congress : l'accès à Internet doit-il être reconnu comme un droit ?",
-    },
-    link: "https://media.ccc.de/v/34c3-9258-lightning_talks_day_4#t=3192",
-  },
-];
-
-const SPEAKER_TOPICS = {
-  en: [
-    "Self-hosting AI in Europe (privacy, GDPR, sovereignty)",
-    "Trustworthy, verifiable AI",
-    "Open source: communities, contribution, sustainability",
-    "Benchmarking human vs. agentic reasoning",
-  ],
-  fr: [
-    "Auto-héberger l'IA en Europe (vie privée, RGPD, souveraineté)",
-    "Une IA digne de confiance et vérifiable",
-    "Open source : communautés, contribution, pérennité",
-    "Comparer le raisonnement humain et celui des agents",
-  ],
-};
-
-/* ---------- Blog ---------- */
-const BLOG_TAGS = ["hackathons", "personal development", "soft skills", "hard skills", "events", "learning", "open source", "communities", "videos"];
-const TAG_LABELS = {
-  fr: {
-    "hackathons": "hackathons", "personal development": "développement personnel",
-    "soft skills": "soft skills", "hard skills": "hard skills", "events": "événements", "learning": "apprentissage",
-    "open source": "open source", "communities": "communautés", "videos": "vidéos",
-  },
-};
-const tagLabel = (tag, lang) => (lang === "fr" ? TAG_LABELS.fr[tag] || tag : tag);
-
-const BLOG_POSTS = [
-  {
-    slug: "technovation-judge",
-    date: { en: "July 2026", fr: "Juillet 2026" },
-    title: {
-      en: "Judging Technovation Girls, as a rehabilitated perfectionist",
-      fr: "Juger Technovation Girls, en perfectionniste réhabilitée",
-    },
-    tags: ["communities", "events", "personal development"],
-    excerpt: {
-      en: "My first time reviewing projects built by founders aged 8 to 18, and what a competition-nerd childhood taught me about what actually stays.",
-      fr: "Ma première fois à évaluer des projets construits par des fondatrices de 8 à 18 ans, et ce qu'une enfance d'accro aux compétitions m'a appris sur ce qui reste vraiment.",
-    },
-    body: {
-      en: [
-        { t: "p", x: "This season I had the opportunity to be a judge for the Technovation Girls competition, in the quarterfinals and the semifinals. It was the first time I interacted with projects built by such young founders: the participants are aged 8 to 18, from primary school all the way to the end of high school." },
-        { t: "p", x: "I remember when I was a girl that age and I first interacted with a computer. Back then, in the early 2000s, we had Turbo Pascal and dark terminal screens to look at, with the goal of solving maths-like problems with code. The only more interactive thing was building some HTML websites and adding some coloured elements. It's amazing how far we've come since then; things are way more rewarding now in terms of what you can dream to build." },
-        { t: "p", x: "Off the top of my head, one project that stayed with me was an app controlling a belt that had sensors to detect movement, built to help users with motor difficulties. In fact, most of the projects had a strong social component: from fighting against school bullying to democratising access to education." },
-        { t: "h2", x: "What actually stays" },
-        { t: "p", x: "The teams showed iterative development, testing with real users, and documented their learning journeys. But probably the most impressive thing for me was to see how much team cohesion there was in the pitch presentations. The girls looked like they had a great time building together, and I especially appreciated how all of the team members took their turn to present a part of the project. I think these are the kind of memories that last in time, regardless of who wins the competition or who gets more points." },
-        { t: "p", x: "As a rehabilitated perfectionist and former competition nerd, I used to compete too when I was a girl, and, as you might imagine, that involved a lot of losing, apart from the times I was winning, of course. I was sad to lose, even when I got second place; that somehow made it even worse, because of all the visibility of losing right next to the first place." },
-        { t: "p", x: "As time passed, I hardly remember the wins. The second places turned from 'public loser no. 1' into 'vice-champion', and, as you might imagine, nobody else cares whether I won or lost. What mattered was how each experience contributed to my growth: the takeaways, and memories exactly like these videos of girls presenting their project together, taking turns." },
-        { t: "h2", x: "What I took home as a judge" },
-        { t: "p", x: "It was a learning journey for me too: judging taught me to offer feedback using the BOOST model (Balanced, Objective, Observed, Specific, Timely). Address both the strengths and the areas to develop, stay grounded in the rubric rather than personal preference, comment on what you actually observed in the submission, and be specific enough that the team knows exactly what you meant, especially since they can't ask follow-up questions." },
-        { t: "p", x: "That last constraint changed how I think about feedback well beyond the competition. Most of the feedback we give in our work (code reviews, grant reviews, comments on a draft) is read in our absence too. Writing it as if the other person cannot ask follow-up questions is a good discipline for making it stand on its own." },
-        { t: "p", x: "I'm in awe of the work behind Technovation. It's exactly the kind of community initiative that brings together girls in tech and motivates them to shine and thrive. If you work in tech and have a few hours to give, consider judging next season." },
-      ],
-      fr: [
-        { t: "p", x: "Cette saison, j'ai eu l'opportunité d'être jurée pour le concours Technovation Girls, en quarts de finale et en demi-finales. C'était la première fois que j'interagissais avec des projets construits par des fondatrices aussi jeunes : les participantes ont entre 8 et 18 ans, de l'école primaire jusqu'à la fin du lycée." },
-        { t: "p", x: "Je me souviens de l'époque où, petite fille de cet âge, j'ai interagi pour la première fois avec un ordinateur. À l'époque, au début des années 2000, nous avions Turbo Pascal et des écrans de terminal sombres à regarder, avec pour objectif de résoudre des problèmes de type mathématique avec du code. La seule chose un peu plus interactive était de construire des sites HTML et d'y ajouter quelques éléments colorés. C'est incroyable le chemin parcouru depuis ; ce que l'on peut rêver de construire aujourd'hui est tellement plus gratifiant." },
-        { t: "p", x: "De mémoire, un projet qui m'a marquée était une application contrôlant une ceinture équipée de capteurs de mouvement, conçue pour aider les personnes ayant des difficultés motrices. En réalité, la plupart des projets avaient une forte composante sociale : de la lutte contre le harcèlement scolaire à la démocratisation de l'accès à l'éducation." },
-        { t: "h2", x: "Ce qui reste vraiment" },
-        { t: "p", x: "Les équipes ont montré un développement itératif, des tests avec de vraies utilisatrices, et ont documenté leurs parcours d'apprentissage. Mais le plus impressionnant pour moi a été de voir la cohésion d'équipe dans les présentations. Les filles avaient l'air de passer un très bon moment à construire ensemble, et j'ai particulièrement apprécié que chaque membre de l'équipe prenne son tour pour présenter une partie du projet. Je crois que ce sont ces souvenirs-là qui durent, peu importe qui gagne le concours ou qui obtient le plus de points." },
-        { t: "p", x: "En perfectionniste réhabilitée et ancienne accro aux compétitions, je concourais moi aussi quand j'étais petite et, comme vous pouvez l'imaginer, cela impliquait beaucoup de défaites, à part, bien sûr, les fois où je gagnais. J'étais triste de perdre, même en finissant deuxième ; c'était presque pire, à cause de toute la visibilité de la défaite juste à côté de la première place." },
-        { t: "p", x: "Avec le temps, je me souviens à peine des victoires. Les deuxièmes places sont passées de « perdante publique n°1 » à « vice-championne » et, comme vous pouvez l'imaginer, personne d'autre ne se soucie de savoir si j'ai gagné ou perdu. Ce qui comptait, c'est ce que chaque expérience a apporté à ma progression : les enseignements, et des souvenirs exactement comme ces vidéos de filles présentant leur projet ensemble, chacune à son tour." },
-        { t: "h2", x: "Ce que j'ai retenu en tant que jurée" },
-        { t: "p", x: "Ce fut aussi un parcours d'apprentissage pour moi : être jurée m'a appris à donner du feedback avec le modèle BOOST : Balanced, Objective, Observed, Specific, Timely (équilibré, objectif, observé, spécifique, au bon moment). Aborder à la fois les forces et les axes de progression, rester ancrée dans la grille d'évaluation plutôt que dans ses préférences personnelles, commenter ce que l'on a réellement observé dans la soumission, et être suffisamment précise pour que l'équipe sache exactement ce que l'on voulait dire, d'autant qu'elle ne peut pas poser de questions de suivi." },
-        { t: "p", x: "Cette dernière contrainte a changé ma façon de penser le feedback bien au-delà du concours. La plupart des retours que nous donnons dans notre travail (revues de code, évaluations de dossiers, commentaires sur un brouillon) sont eux aussi lus en notre absence. Les écrire comme si l'autre personne ne pouvait pas poser de questions de suivi est une bonne discipline pour qu'ils tiennent debout tout seuls." },
-        { t: "p", x: "Je suis admirative du travail derrière Technovation. C'est exactement le genre d'initiative communautaire qui rassemble les filles dans la tech et les motive à briller et à s'épanouir. Si vous travaillez dans la tech et avez quelques heures à donner, pensez à devenir juré ou jurée la saison prochaine." },
-      ],
-    },
-  },
-  {
-    slug: "example-post",
-    date: { en: "Coming soon", fr: "Bientôt" },
-    title: { en: "Placeholder: your next piece of thought", fr: "Exemple : votre prochain morceau de pensée" },
-    tags: ["open source", "learning"],
-    excerpt: {
-      en: "A placeholder entry showing how posts appear: duplicate this object in BLOG_POSTS, give it a slug, tags, and an en/fr body.",
-      fr: "Un article d'exemple montrant le rendu : dupliquez cet objet dans BLOG_POSTS avec un slug, des tags et un contenu en/fr.",
-    },
-    body: {
-      en: [
-        { t: "p", x: "This is a placeholder post. Duplicate the object in BLOG_POSTS, set a unique slug, choose tags from BLOG_TAGS, and write the body in both languages." },
-        { t: "p", x: "For video content: publish the video on PeerTube/YouTube, then create a post like this with a link or embed plus a few paragraphs of context, tagged 'videos'." },
-      ],
-      fr: [
-        { t: "p", x: "Ceci est un article d'exemple. Dupliquez l'objet dans BLOG_POSTS, définissez un slug unique, choisissez des tags dans BLOG_TAGS, et rédigez le contenu dans les deux langues." },
-        { t: "p", x: "Pour du contenu vidéo : publiez la vidéo sur PeerTube/YouTube, puis créez un article comme celui-ci avec un lien ou une intégration et quelques paragraphes de contexte, avec le tag « vidéos »." },
-      ],
-    },
-  },
-];
 
 /* ============================================================
    STYLES (same design system as v6)
@@ -816,7 +454,7 @@ function useHashRoute() {
   return route;
 }
 
-function useScrollSpy(ids, enabled) {
+function useScrollSpy(ids: string[], enabled: boolean) {
   const [active, setActive] = useState(ids[0]);
   useEffect(() => {
     if (!enabled) return;
@@ -834,21 +472,31 @@ function useScrollSpy(ids, enabled) {
    circles. Lines bow gently away from the pointer; circles have a
    light parallax. Fully redrawn each frame (crisp, no trails).
    Static single frame under prefers-reduced-motion. */
-function useCalmField(canvasRef, theme) {
+function useCalmField(canvasRef: RefObject<HTMLCanvasElement>, theme: Theme) {
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const maybeCanvas = canvasRef.current;
+    const maybeCtx = maybeCanvas?.getContext("2d");
+    if (!maybeCanvas || !maybeCtx) return;
+    const canvas: HTMLCanvasElement = maybeCanvas;
+    const ctx: CanvasRenderingContext2D = maybeCtx;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const dark = theme !== "light";
     const BG = dark ? "#16101E" : "#F7F4FA";
-    const lineCol = (a) => (dark ? `hsla(266, 45%, 76%, ${a})` : `hsla(268, 38%, 38%, ${a})`);
-    const goldCol = (a) => (dark ? `hsla(40, 62%, 70%, ${a})` : `hsla(40, 70%, 34%, ${a})`);
+    const lineCol = (a: number) => (dark ? `hsla(266, 45%, 76%, ${a})` : `hsla(268, 38%, 38%, ${a})`);
+    const goldCol = (a: number) => (dark ? `hsla(40, 62%, 70%, ${a})` : `hsla(40, 70%, 34%, ${a})`);
 
-    let raf = 0, w = 0, h = 0, lines = [], circles = [];
+    let raf = 0, w = 0, h = 0;
+    let lines: {
+      y: number; amp1: number; amp2: number; f1: number; f2: number;
+      s1: number; s2: number; phase: number; alpha: number;
+    }[] = [];
+    let circles: {
+      x: number; y: number; r: number; vx: number; vy: number;
+      depth: number; gold: boolean; alpha: number; lw: number;
+    }[] = [];
     const pointer = { x: -1e4, y: -1e4 };
-    const rand = (a, b) => a + Math.random() * (b - a);
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
     function build() {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -877,7 +525,7 @@ function useCalmField(canvasRef, theme) {
       }));
     }
 
-    function draw(t) {
+    function draw(t: number) {
       ctx.fillStyle = BG;
       ctx.fillRect(0, 0, w, h);
 
@@ -923,7 +571,7 @@ function useCalmField(canvasRef, theme) {
       if (!reduced) raf = requestAnimationFrame(draw);
     }
 
-    function onMove(e) { pointer.x = e.clientX; pointer.y = e.clientY; }
+    function onMove(e: PointerEvent) { pointer.x = e.clientX; pointer.y = e.clientY; }
     function onLeave() { pointer.x = -1e4; pointer.y = -1e4; }
     function onResize() { build(); if (reduced) draw(0); }
 
@@ -961,7 +609,13 @@ const MastodonIcon = () => (
    COMPONENTS
    ============================================================ */
 
-function TopControls({ lang, setLang, theme, setTheme, ui }) {
+interface TopControlsProps extends PageProps {
+  setLang: (l: Lang) => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+}
+
+function TopControls({ lang, setLang, theme, setTheme, ui }: TopControlsProps) {
   const dark = theme !== "light";
   return (
     <div className="lang-switch" role="group" aria-label="Language & theme / Langue et thème">
@@ -988,7 +642,7 @@ function TopControls({ lang, setLang, theme, setTheme, ui }) {
   );
 }
 
-function ToTop({ ui }) {
+function ToTop({ ui }: UIProps) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     const f = () => setShow(window.scrollY > 600);
@@ -1005,8 +659,8 @@ function ToTop({ ui }) {
   );
 }
 
-function Sidebar({ active, ui }) {
-  const nav = [
+function Sidebar({ active, ui }: UIProps & { active: string }) {
+  const nav: [string, string][] = [
     ["about", ui.nav.about], ["projects", ui.nav.projects], ["talks", ui.nav.talks],
     ["mentorship", ui.nav.mentorship], ["contact", ui.nav.contact],
   ];
@@ -1047,7 +701,7 @@ function Sidebar({ active, ui }) {
   );
 }
 
-function About({ lang, ui }) {
+function About({ lang, ui }: PageProps) {
   return (
     <section className="section about" id="about" aria-label={ui.secAbout}>
       <h2 className="sec-title">{ui.secAbout}</h2>
@@ -1066,7 +720,7 @@ function About({ lang, ui }) {
    "See more". Order PROJECTS most-important-first. */
 const VISIBLE_PROJECTS = 4;
 
-function Projects({ lang, ui }) {
+function Projects({ lang, ui }: PageProps) {
   const [showAll, setShowAll] = useState(false);
   const hidden = Math.max(0, PROJECTS.length - VISIBLE_PROJECTS);
   const visible = showAll ? PROJECTS : PROJECTS.slice(0, VISIBLE_PROJECTS);
@@ -1110,7 +764,7 @@ function Projects({ lang, ui }) {
    "Show earlier talks". Order TALKS newest-first. */
 const RECENT_TALKS = 4;
 
-function Talks({ lang, ui }) {
+function Talks({ lang, ui }: PageProps) {
   const [showAll, setShowAll] = useState(false);
   const earlier = Math.max(0, TALKS.length - RECENT_TALKS);
   const visible = showAll ? TALKS : TALKS.slice(0, RECENT_TALKS);
@@ -1163,7 +817,7 @@ function Talks({ lang, ui }) {
   );
 }
 
-function Mentorship({ ui }) {
+function Mentorship({ ui }: UIProps) {
   return (
     <section className="section" id="mentorship" aria-label={ui.secMentorship}>
       <h2 className="sec-title">{ui.secMentorship}</h2>
@@ -1185,36 +839,45 @@ function Mentorship({ ui }) {
   );
 }
 
-function Contact({ ui }) {
-  const [values, setValues] = useState({ name: "", email: "", message: "", website: "" });
-  const [errors, setErrors] = useState({});
+type ContactField = "name" | "email" | "message" | "website";
+type ContactErrors = Partial<Record<"name" | "email" | "message", string>>;
+
+function Contact({ ui }: UIProps) {
+  const [values, setValues] = useState<Record<ContactField, string>>({ name: "", email: "", message: "", website: "" });
+  const [errors, setErrors] = useState<ContactErrors>({});
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
-  const set = (k) => (e) => setValues((v) => ({ ...v, [k]: e.target.value }));
+  const [failed, setFailed] = useState(false);
+  const set = (k: ContactField) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setValues((v) => ({ ...v, [k]: e.target.value }));
 
-  function validate() {
-    const e = {};
+  function validate(): ContactErrors {
+    const e: ContactErrors = {};
     if (!values.name.trim()) e.name = ui.eName;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) e.email = ui.eEmail;
     if (values.message.trim().length < 10) e.message = ui.eMsg;
     return e;
   }
   async function submit() {
-    if (values.website) return; // honeypot
+    if (values.website) return; // honeypot (also enforced server-side)
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) return;
     setSending(true);
+    setFailed(false);
     try {
-      if (LINKS.contactEndpoint) {
-        await fetch(LINKS.contactEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: values.name, email: values.email, message: values.message }),
-        });
-      }
-      setSent(true);
-    } finally { setSending(false); }
+      const res = await fetch(CONTACT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (res.ok) setSent(true);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -1254,6 +917,11 @@ function Contact({ ui }) {
             <button className="btn violet" onClick={submit} disabled={sending}>
               {sending ? ui.sending : ui.send}
             </button>
+            {failed && (
+              <p className="err" role="alert">
+                {ui.sendFail} <a className="inline" href={`mailto:${LINKS.email}`}>{LINKS.email}</a>.
+              </p>
+            )}
             <p className="small-note">
               {ui.formNote[0]}<a className="inline" href="#/legal">{ui.formNote[1]}</a>{ui.formNote[2]}
             </p>
@@ -1264,7 +932,7 @@ function Contact({ ui }) {
   );
 }
 
-function Colophon({ ui }) {
+function Colophon({ ui }: UIProps) {
   return (
     <footer className="colophon">
       <p>
@@ -1274,8 +942,10 @@ function Colophon({ ui }) {
   );
 }
 
-function HomePage({ lang, ui }) {
-  const active = useScrollSpy(["about", "projects", "talks", "mentorship", "contact"], true);
+const HOME_SECTIONS = ["about", "projects", "talks", "mentorship", "contact"];
+
+function HomePage({ lang, ui }: PageProps) {
+  const active = useScrollSpy(HOME_SECTIONS, true);
   return (
     <div className="layout">
       <Sidebar active={active} ui={ui} />
@@ -1295,8 +965,8 @@ function HomePage({ lang, ui }) {
    BLOG PAGES
    ============================================================ */
 
-function BlogIndex({ lang, ui }) {
-  const [tag, setTag] = useState(null);
+function BlogIndex({ lang, ui }: PageProps) {
+  const [tag, setTag] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const needle = q.trim().toLowerCase();
   const posts = BLOG_POSTS.filter((p) => {
@@ -1343,7 +1013,7 @@ function BlogIndex({ lang, ui }) {
   );
 }
 
-function BlogPost({ slug, lang, ui }) {
+function BlogPost({ slug, lang, ui }: PageProps & { slug: string }) {
   const post = BLOG_POSTS.find((p) => p.slug === slug);
   if (!post) {
     return (
@@ -1394,7 +1064,7 @@ const LEGAL = {
   },
 };
 
-function LegalPage({ lang, ui }) {
+function LegalPage({ lang, ui }: PageProps) {
   const L = LEGAL[lang];
   return (
     <main className="page legal" id="main" tabIndex={-1}>
@@ -1413,10 +1083,10 @@ function LegalPage({ lang, ui }) {
 
 export default function App() {
   const route = useHashRoute();
-  const [lang, setLang] = useState(() =>
+  const [lang, setLang] = useState<Lang>(() =>
     (navigator.language || "en").toLowerCase().startsWith("fr") ? "fr" : "en"
   );
-  const [theme, setTheme] = useState(() =>
+  const [theme, setTheme] = useState<Theme>(() =>
     window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"
   );
   const ui = UI[lang];
@@ -1434,7 +1104,7 @@ export default function App() {
     document.body.style.background = theme === "light" ? "#F7F4FA" : "#16101E";
   }, [theme]);
 
-  const silkRef = useRef(null);
+  const silkRef = useRef<HTMLCanvasElement>(null);
   useCalmField(silkRef, theme);
 
   let page;

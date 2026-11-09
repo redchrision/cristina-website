@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,7 +17,10 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/react": "18.3",
+    "@types/react-dom": "18.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "5.9",
     "vite": "^5.4.11"
   }
 }

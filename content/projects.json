@@ -1,0 +1,185 @@
+[
+  {
+    "mystery": true,
+    "name": {
+      "en": "Something is brewing",
+      "fr": "Quelque chose se prépare"
+    },
+    "role": {
+      "en": "In the lab · Open source",
+      "fr": "Au labo · Open source"
+    },
+    "blurb": {
+      "en": "A new open-source tool for professionals bound by confidentiality, built to run entirely on your own hardware. No name, no repo, no screenshots yet. The reveal comes when it's ready.",
+      "fr": "Un nouvel outil open source pour les professions soumises au secret professionnel, conçu pour tourner entièrement sur votre propre matériel. Pas de nom, pas de dépôt, pas de captures d'écran pour l'instant. Tout sera dévoilé quand ce sera prêt."
+    },
+    "tags": [
+      "Open source",
+      "AI",
+      {
+        "en": "Self-hosted",
+        "fr": "Auto-hébergé"
+      }
+    ],
+    "links": [
+      {
+        "label": "Mastodon ↗",
+        "href": "https://mastodon.social/@redchrision"
+      },
+      {
+        "label": {
+          "en": "Blog →",
+          "fr": "Blog →"
+        },
+        "href": "#/blog"
+      }
+    ]
+  },
+  {
+    "name": "Instructor Deployable",
+    "role": {
+      "en": "Built as a Research Assistant at Georgia Tech's Design & Intelligence Lab",
+      "fr": "Développé en tant qu'assistante de recherche au Design & Intelligence Lab de Georgia Tech"
+    },
+    "blurb": {
+      "en": "A React application built for deployment in real classrooms, letting instructors interact with Jill Watson, the lab's AI teaching assistant. React frontend hosted on AWS (S3), Python backend.",
+      "fr": "Une application React conçue pour être déployée dans de vraies salles de classe, permettant aux enseignants d'interagir avec Jill Watson, l'assistante pédagogique IA du laboratoire. Frontend React hébergé sur AWS (S3), backend Python."
+    },
+    "tags": [
+      "React",
+      "Python",
+      "AWS",
+      "AI"
+    ],
+    "links": []
+  },
+  {
+    "name": "PICO Scholar",
+    "role": {
+      "en": "2nd place · Red Hat & Intel AI hackathon",
+      "fr": "2ᵉ place · hackathon IA Red Hat & Intel"
+    },
+    "blurb": {
+      "en": "Document extraction for systematic literature reviews, structuring research papers into the PICO framework.",
+      "fr": "Extraction documentaire pour les revues systématiques de littérature, structurant les articles de recherche selon le cadre PICO."
+    },
+    "tags": [
+      "AI",
+      "Python",
+      {
+        "en": "Hackathon",
+        "fr": "Hackathon"
+      }
+    ],
+    "links": [
+      {
+        "label": {
+          "en": "Repository ↗",
+          "fr": "Dépôt ↗"
+        },
+        "href": "https://github.com/redchrision"
+      }
+    ]
+  },
+  {
+    "name": {
+      "en": "Eurovision Votes Analysis",
+      "fr": "Analyse des votes de l'Eurovision"
+    },
+    "role": {
+      "en": "Data analysis",
+      "fr": "Analyse de données"
+    },
+    "blurb": {
+      "en": "A study of the correlation between jury votes and televotes in Eurovision 2021: what drives the two voting blocs apart.",
+      "fr": "Une étude de la corrélation entre les votes des jurys et le télévote à l'Eurovision 2021 : ce qui sépare les deux blocs de vote."
+    },
+    "tags": [
+      "Python",
+      "Pandas",
+      "Data"
+    ],
+    "links": [
+      {
+        "label": {
+          "en": "Demo ↗",
+          "fr": "Démo ↗"
+        },
+        "href": "https://youtu.be/dUr9yGYLbmY"
+      },
+      {
+        "label": {
+          "en": "Repository ↗",
+          "fr": "Dépôt ↗"
+        },
+        "href": "https://github.com/redchrision/EurovisionVotesAnalysis"
+      }
+    ]
+  },
+  {
+    "name": "OtoDecks",
+    "role": {
+      "en": "Audio application",
+      "fr": "Application audio"
+    },
+    "blurb": {
+      "en": "A DJ mixing application with a custom GUI: dual players, tempo and volume control, and an integrated track library.",
+      "fr": "Une application de mixage DJ avec interface personnalisée : double platine, contrôle du tempo et du volume, et bibliothèque de morceaux intégrée."
+    },
+    "tags": [
+      "C++",
+      "JUCE",
+      "Audio"
+    ],
+    "links": [
+      {
+        "label": {
+          "en": "Demo ↗",
+          "fr": "Démo ↗"
+        },
+        "href": "https://www.youtube.com/watch?v=03jPQ5GgG-8"
+      },
+      {
+        "label": {
+          "en": "Repository ↗",
+          "fr": "Dépôt ↗"
+        },
+        "href": "https://github.com/redchrision/OtoDecks"
+      }
+    ]
+  },
+  {
+    "name": "Webcam Piano",
+    "role": {
+      "en": "Computer vision",
+      "fr": "Vision par ordinateur"
+    },
+    "blurb": {
+      "en": "A computer-vision instrument: movement captured by the webcam becomes music, live in the browser.",
+      "fr": "Un instrument de vision par ordinateur : les mouvements captés par la webcam deviennent de la musique, en direct dans le navigateur."
+    },
+    "tags": [
+      "JavaScript",
+      {
+        "en": "Computer vision",
+        "fr": "Vision par ordinateur"
+      }
+    ],
+    "links": [
+      {
+        "label": {
+          "en": "Demo ↗",
+          "fr": "Démo ↗"
+        },
+        "href": "https://www.youtube.com/watch?v=C3OMeTqs-vI"
+      },
+      {
+        "label": {
+          "en": "Repository ↗",
+          "fr": "Dépôt ↗"
+        },
+        "href": "https://github.com/redchrision/WebcamPlayer"
+      }
+    ]
+  }
+]
