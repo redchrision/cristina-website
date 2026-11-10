@@ -1048,15 +1048,14 @@ function BlogPost({ slug, lang, ui }: PageProps & { slug: string }) {
 
 /* ============================================================
    LEGAL — mentions légales (FR) with an English rendering.
-   Fill the bracketed placeholders before going live.
    ============================================================ */
 
 const LEGAL = {
   fr: {
     title: "Mentions légales & confidentialité",
     sections: [
-      ["Éditeur du site", "Ce site est édité par [CJDNS SASU, adresse du siège social, numéro SIREN/RCS à compléter]. Directrice de la publication : Cristina DeLisle. Contact : hello@cristinadelisle.xyz."],
-      ["Hébergement", "[Nom de l'hébergeur, raison sociale, adresse et téléphone, à compléter selon votre hébergeur : OVH, Scaleway, etc.]"],
+      ["Éditeur du site", "Ce site est édité par Cristina DeLisle, à titre personnel. Directrice de la publication : Cristina DeLisle. Contact : hello@cristinadelisle.xyz."],
+      ["Hébergement", "Porkbun LLC, 21370 SW Langer Farms Parkway, Suite 142-429, Sherwood, OR 97140, États-Unis. Téléphone : +1 855 767 5286. porkbun.com"],
       ["Propriété intellectuelle", "Sauf mention contraire, les contenus de ce site (textes, visuels, code) sont la propriété de leur auteure. Les projets open source cités sont distribués sous leurs licences respectives."],
       ["Données personnelles (RGPD)", "Le formulaire de contact collecte votre nom, votre adresse e-mail et votre message, dans le seul but de répondre à votre demande (base légale : intérêt légitime). Ces données sont conservées le temps du traitement de votre demande et ne sont ni cédées ni utilisées à d'autres fins. Vous disposez d'un droit d'accès, de rectification et d'effacement, que vous pouvez exercer en écrivant à hello@cristinadelisle.xyz. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr)."],
       ["Cookies", "Ce site n'utilise ni cookies ni traceurs. Aucun outil d'analyse d'audience n'est installé."],
@@ -1065,8 +1064,8 @@ const LEGAL = {
   en: {
     title: "Legal notice & privacy",
     sections: [
-      ["Site publisher", "This site is published by [CJDNS SASU, registered office address and SIREN/RCS number to complete]. Publication director: Cristina DeLisle. Contact: hello@cristinadelisle.xyz."],
-      ["Hosting", "[Host name, company, address and phone, complete according to your host: OVH, Scaleway, etc.]"],
+      ["Site publisher", "This site is published by Cristina DeLisle, in a personal capacity. Publication director: Cristina DeLisle. Contact: hello@cristinadelisle.xyz."],
+      ["Hosting", "Porkbun LLC, 21370 SW Langer Farms Parkway, Suite 142-429, Sherwood, OR 97140, United States. Phone: +1 855 767 5286. porkbun.com"],
       ["Intellectual property", "Unless stated otherwise, the contents of this site (texts, visuals, code) are the property of their author. The open-source projects mentioned are distributed under their respective licences."],
       ["Personal data (GDPR)", "The contact form collects your name, email address and message, solely to answer your request (legal basis: legitimate interest). This data is kept for the time needed to handle your request and is neither shared nor used for other purposes. You have rights of access, rectification and erasure, which you can exercise by writing to hello@cristinadelisle.xyz. You may also lodge a complaint with the CNIL (cnil.fr)."],
       ["Cookies", "This site uses no cookies and no trackers. No analytics tool is installed."],
