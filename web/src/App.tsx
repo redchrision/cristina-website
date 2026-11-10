@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, RefObject } from "react";
-import { CONTACT_ENDPOINT, trackPageview } from "./api";
+import { CONTACT_ENDPOINT, CONTACT_FORM_ON, trackPageview } from "./api";
 import {
   BLOG_POSTS, BLOG_TAGS, PROJECTS, SPEAKER_TOPICS, TALKS, t, tagLabel,
 } from "./content";
@@ -55,6 +55,7 @@ const UI = {
     mentorNote: "If the quarter's slot is taken, I'll tell you when the next one opens. Not in one of these groups? My inbox is still open; this hour is just reserved.",
     mentorSubject: "Mentorship request",
     contactIntro: ["For opportunities, speaking invitations, project collaborations, or anything open source, write to me below, or directly at "],
+    contactIntroNoForm: "For opportunities, speaking invitations, project collaborations, or anything open source, write to me at ",
     fName: "Name", fEmail: "Email", fMsg: "Message",
     eName: "Please enter your name.", eEmail: "Please enter a valid email address.", eMsg: "Please write a few words about your request.",
     sent: "Thank you, your message has been sent. I usually reply within two working days.",
@@ -95,6 +96,7 @@ const UI = {
     mentorNote: "Si le créneau du trimestre est déjà pris, je vous dirai quand le prochain se libère. Vous ne faites pas partie de ces groupes ? Ma boîte mail reste ouverte ; cette heure est simplement réservée.",
     mentorSubject: "Demande de mentorat",
     contactIntro: ["Pour des opportunités, des invitations à intervenir, des collaborations ou tout ce qui touche à l'open source, écrivez-moi ci-dessous, ou directement à "],
+    contactIntroNoForm: "Pour des opportunités, des invitations à intervenir, des collaborations ou tout ce qui touche à l'open source, écrivez-moi à ",
     fName: "Nom", fEmail: "E-mail", fMsg: "Message",
     eName: "Veuillez saisir votre nom.", eEmail: "Veuillez saisir une adresse e-mail valide.", eMsg: "Veuillez écrire quelques mots sur votre demande.",
     sent: "Merci, votre message a bien été envoyé. Je réponds généralement sous deux jours ouvrés.",
@@ -892,10 +894,10 @@ function Contact({ ui }: UIProps) {
     <section className="section" id="contact" aria-label={ui.secContact}>
       <h2 className="sec-title">{ui.secContact}</h2>
       <p style={{ maxWidth: "60ch" }}>
-        {ui.contactIntro[0]}
+        {CONTACT_FORM_ON ? ui.contactIntro[0] : ui.contactIntroNoForm}
         <a className="inline" href={`mailto:${LINKS.email}`}>{LINKS.email}</a>.
       </p>
-      <div className="form">
+      {CONTACT_FORM_ON && <div className="form">
         {sent ? (
           <p className="form-ok" role="status">{ui.sent}</p>
         ) : (
@@ -935,7 +937,7 @@ function Contact({ ui }: UIProps) {
             </p>
           </div>
         )}
-      </div>
+      </div>}
     </section>
   );
 }

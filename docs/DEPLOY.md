@@ -1,10 +1,40 @@
 # Deploying
 
+There are two ways to host the site:
+
+| | Static (current) | Full server |
+|---|---|---|
+| Where | Porkbun Static Hosting | A small VPS (e.g. OVH) with Docker |
+| What runs | The website only | Website, contact form, `/v1` API, `/docs`, MCP, ClickHouse |
+| Contact | Email address shown instead of the form | Contact form |
+
+## Static: Porkbun Static Hosting
+
+The workflow [`.github/workflows/static-site.yml`](../.github/workflows/static-site.yml)
+builds the site on every push to `main` (with `VITE_CONTACT_FORM=off`) and
+publishes the files to the **`porkbun-site`** branch. Porkbun deploys that
+branch.
+
+One-time setup in Porkbun:
+
+1. Account → Domain Management → `cristinadelisle.xyz` → **Static Hosting**
+   icon (Website column).
+2. Scroll to **GitHub Connect** → *connect*. On GitHub choose *Only select
+   repositories* → `cristina-website` → *Install*.
+3. Back on Porkbun, under GitHub Connect choose repository
+   `redchrision/cristina-website` and branch **`porkbun-site`**.
+
+After that, every merge into `main` updates the live site within a few
+minutes. To redeploy by hand: GitHub → Actions → *Static site (Porkbun)* →
+*Run workflow*.
+
+## Full server
+
 The target is one small VPS (for example an OVH VPS in France) running Docker,
 with Cloudflare in front. The same image would run on Kubernetes unchanged:
 it is stateless apart from `/data` (SQLite) and ClickHouse.
 
-## 1. Server
+### 1. Server
 
 ```bash
 # On the VPS (Debian/Ubuntu), as a sudo user
@@ -15,7 +45,7 @@ cp .env.example .env && chmod 600 .env    # fill in the values
 
 Generate the ClickHouse password with `openssl rand -base64 32`.
 
-## 2. Cloudflare in front
+### 2. Cloudflare in front
 
 **Recommended: Cloudflare Tunnel.** The VPS opens no inbound ports at all:
 `cloudflared` connects out to Cloudflare, and Cloudflare terminates TLS.
@@ -46,14 +76,14 @@ Also in Cloudflare:
   rules do the right thing.
 - Optionally add a WAF rate-limiting rule on `/api/contact` as a second layer.
 
-## 3. API keys
+### 3. API keys
 
 ```bash
 docker compose exec site site-server keys create --name owner \
   --scopes content:read,events:write,stats:read,messages:read
 ```
 
-## 4. Monitoring with Datadog
+### 4. Monitoring with Datadog
 
 | Signal | Source | Datadog setup |
 |---|---|---|
@@ -76,7 +106,7 @@ Metrics worth alerting on:
 `/healthz` is liveness and `/readyz` is readiness (it checks SQLite and
 ClickHouse), ready for a load balancer or Kubernetes probes.
 
-## 5. Updating
+### 5. Updating
 
 CI pushes `ghcr.io/redchrision/cristina-website:latest` on every commit to
 `main`. On the VPS:
@@ -89,7 +119,7 @@ On `SIGTERM` the server stops accepting connections, finishes in-flight
 requests, drains the event queue into ClickHouse and flushes quota counters
 before exiting, so a restart loses no accepted events.
 
-## Backups
+### Backups
 
 - SQLite (keys, quota usage, contact messages): copy the `site-data` volume
   (`docker run --rm -v cristina-website_site-data:/data -v $PWD:/out alpine
