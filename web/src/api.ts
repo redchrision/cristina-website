@@ -2,6 +2,12 @@
 export const CONTACT_ENDPOINT = "/api/contact";
 
 /**
+ * The contact form needs the Rust server. Static-only builds (e.g. Porkbun
+ * static hosting) set VITE_CONTACT_FORM=off and show the email address only.
+ */
+export const CONTACT_FORM_ON = import.meta.env.VITE_CONTACT_FORM !== "off";
+
+/**
  * Cookieless page-view beacon, OFF by default. Build with
  * `VITE_ANALYTICS=on npm run build` to enable it. It sends only the route,
  * the referrer host, the UI language and a coarse device class: no cookie,
