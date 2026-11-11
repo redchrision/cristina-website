@@ -208,23 +208,53 @@ fn presented_key(headers: &HeaderMap) -> Option<&str> {
         .map(str::trim)
 }
 
-/// Best-effort client IP. Behind Cloudflare the TCP peer is a Cloudflare edge,
-/// so the real address comes from `CF-Connecting-IP` (only trusted when
-/// configured, otherwise anyone could spoof it).
+/// Best-effort client IP, used for per-IP rate limits.
+///
+/// * Behind Cloudflare (`TRUST_CLOUDFLARE`) the address comes from
+///   `CF-Connecting-IP`.
+/// * Behind a reverse proxy listed in `TRUSTED_PROXIES`, it comes from
+///   `X-Forwarded-For` (the right-most address that is not itself a trusted
+///   proxy) or `X-Real-IP`, but only when the TCP peer is that proxy.
+///   Otherwise anyone could pick their own IP and dodge the limits.
+/// * Otherwise it is the TCP peer address.
 pub fn client_ip(state: &AppState, req: &Request) -> String {
-    if state.cfg.trust_cloudflare
-        && let Some(ip) = req
-            .headers()
-            .get("cf-connecting-ip")
+    let headers = req.headers();
+    let header_ip = |name: &str| {
+        headers
+            .get(name)
             .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.parse::<IpAddr>().ok())
+            .and_then(|v| v.trim().parse::<IpAddr>().ok())
+    };
+    if state.cfg.trust_cloudflare
+        && let Some(ip) = header_ip("cf-connecting-ip")
     {
         return ip.to_string();
     }
-    req.extensions()
+    let peer = req
+        .extensions()
         .get::<ConnectInfo<SocketAddr>>()
-        .map(|c| c.0.ip().to_string())
-        .unwrap_or_else(|| "unknown".into())
+        .map(|c| c.0.ip().to_canonical());
+    let Some(peer) = peer else {
+        return "unknown".into();
+    };
+    let trusted = state.cfg.trusted_proxy_ips();
+    if trusted.contains(&peer) {
+        let forwarded = headers
+            .get_all("x-forwarded-for")
+            .iter()
+            .filter_map(|v| v.to_str().ok())
+            .flat_map(|v| v.split(','))
+            .filter_map(|p| p.trim().parse::<IpAddr>().ok())
+            .map(|ip| ip.to_canonical())
+            .collect::<Vec<_>>();
+        if let Some(ip) = forwarded.iter().rev().find(|ip| !trusted.contains(ip)) {
+            return ip.to_string();
+        }
+        if let Some(ip) = header_ip("x-real-ip") {
+            return ip.to_canonical().to_string();
+        }
+    }
+    peer.to_string()
 }
 
 fn set_rate_headers(headers: &mut HeaderMap, d: &Decision) {

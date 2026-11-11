@@ -1,0 +1,20 @@
+# For a server behind a reverse proxy that reaches it over the network
+# (for example a proxy machine connecting over cjdns).
+#
+# The site container uses the host's network so that:
+#   - it listens on every interface, including cjdns' tun0, and
+#   - it sees the proxy's real address, which TRUSTED_PROXIES needs
+#     (Docker's port publishing would replace it with the bridge address).
+#
+# Enable it by adding this line to .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml
+
+services:
+  site:
+    network_mode: host
+    ports: !reset []
+    environment:
+      BIND: "[::]:8080"
+      METRICS_BIND: 127.0.0.1:9090
+      CLICKHOUSE_URL: http://127.0.0.1:8123
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}

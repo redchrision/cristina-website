@@ -28,6 +28,41 @@ After that, every merge into `main` updates the live site within a few
 minutes. To redeploy by hand: GitHub → Actions → *Static site (Porkbun)* →
 *Run workflow*.
 
+## Full server behind a reverse proxy (cjdns)
+
+When a separate machine terminates HTTPS and forwards visitors to this server
+(for example over cjdns), use the proxy override, which runs the site on the
+host's network so it listens on every interface and sees the proxy's real
+address:
+
+```bash
+git clone https://github.com/redchrision/cristina-website.git /opt/cristina-website
+cd /opt/cristina-website
+cat > .env <<EOT
+CLICKHOUSE_PASSWORD=$(openssl rand -hex 24)
+PUBLIC_HOSTS=cristinadelisle.xyz,www.cristinadelisle.xyz
+COMPOSE_FILE=docker-compose.yml:docker-compose.proxy.yml
+TRUSTED_PROXIES=<cjdns address of the proxy machine>
+EOT
+chmod 600 .env
+docker compose up -d --build
+```
+
+The site listens on port 8080 on all addresses, including the cjdns one.
+ClickHouse (8123) and metrics (9090) stay on localhost.
+
+What the proxy should do:
+
+- forward `cristinadelisle.xyz` (and `www.`) to `http://[<this server's fc… address>]:8080`;
+- keep the original `Host` header (the MCP endpoint checks it against
+  `PUBLIC_HOSTS`);
+- set `X-Forwarded-For` (or `X-Real-IP`) to the visitor's address.
+
+`X-Forwarded-For` is only honoured when the connection comes from an address in
+`TRUSTED_PROXIES`, so other cjdns nodes connecting directly cannot fake their
+IP to dodge rate limits. Once the site is served over HTTPS, add `HSTS=true`
+to `.env` (or let the proxy send the header).
+
 ## Full server
 
 The target is one small VPS (for example an OVH VPS in France) running Docker,
