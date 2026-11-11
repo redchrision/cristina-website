@@ -148,24 +148,25 @@ fn init_tracing(format: LogFormat) -> anyhow::Result<TelemetryGuard> {
     #[cfg(feature = "otel")]
     {
         use opentelemetry::trace::TracerProvider as _;
-        let provider = if std::env::var_os("OTEL_EXPORTER_OTLP_ENDPOINT").is_some() {
-            let exporter = opentelemetry_otlp::SpanExporter::builder()
-                .with_http()
-                .build()
-                .context("building OTLP exporter")?;
-            Some(
-                opentelemetry_sdk::trace::SdkTracerProvider::builder()
-                    .with_batch_exporter(exporter)
-                    .with_resource(
-                        opentelemetry_sdk::Resource::builder()
-                            .with_service_name("site-server")
-                            .build(),
-                    )
-                    .build(),
-            )
-        } else {
-            None
-        };
+        let provider =
+            if std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT").is_ok_and(|v| !v.trim().is_empty()) {
+                let exporter = opentelemetry_otlp::SpanExporter::builder()
+                    .with_http()
+                    .build()
+                    .context("building OTLP exporter")?;
+                Some(
+                    opentelemetry_sdk::trace::SdkTracerProvider::builder()
+                        .with_batch_exporter(exporter)
+                        .with_resource(
+                            opentelemetry_sdk::Resource::builder()
+                                .with_service_name("site-server")
+                                .build(),
+                        )
+                        .build(),
+                )
+            } else {
+                None
+            };
         let otel = provider
             .as_ref()
             .map(|p| tracing_opentelemetry::layer().with_tracer(p.tracer("site-server")));

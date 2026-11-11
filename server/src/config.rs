@@ -74,6 +74,18 @@ pub struct ServeConfig {
     #[arg(long, env = "TRUST_CLOUDFLARE", default_value_t = false)]
     pub trust_cloudflare: bool,
 
+    /// Addresses of reverse proxies in front of this server, comma-separated
+    /// (e.g. the cjdns address of the proxy machine). Only requests whose TCP
+    /// peer is one of these may set the client IP via `X-Forwarded-For` or
+    /// `X-Real-IP`; from anyone else those headers are ignored.
+    #[arg(
+        long,
+        env = "TRUSTED_PROXIES",
+        value_delimiter = ',',
+        default_value = ""
+    )]
+    pub trusted_proxies: Vec<String>,
+
     /// Send `Strict-Transport-Security` (enable when served over HTTPS).
     #[arg(long, env = "HSTS", default_value_t = false)]
     pub hsts: bool,
@@ -98,6 +110,14 @@ pub struct ServeConfig {
 }
 
 impl ServeConfig {
+    /// Parsed `TRUSTED_PROXIES`; invalid or empty entries are ignored.
+    pub fn trusted_proxy_ips(&self) -> Vec<std::net::IpAddr> {
+        self.trusted_proxies
+            .iter()
+            .filter_map(|s| s.trim().trim_matches(['[', ']']).parse().ok())
+            .collect()
+    }
+
     pub fn flush_interval(&self) -> Duration {
         Duration::from_millis(self.ingest_flush_interval_ms)
     }

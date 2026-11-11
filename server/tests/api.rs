@@ -59,6 +59,10 @@ async fn create_key(
 }
 
 async fn test_app() -> TestApp {
+    test_app_with(|_| {}).await
+}
+
+async fn test_app_with(tweak: impl FnOnce(&mut ServeConfig)) -> TestApp {
     let dir = std::env::temp_dir().join(format!("site-test-{}", uuid::Uuid::new_v4()));
     let db_url = format!("sqlite://{}/t.db?mode=rwc", dir.display());
     let static_dir = dir.join("dist");
@@ -72,6 +76,7 @@ async fn test_app() -> TestApp {
     let mut cfg = Wrapper::parse_from(["test"]).cfg;
     cfg.static_dir = static_dir;
     cfg.database_url = db_url.clone();
+    tweak(&mut cfg);
 
     let db = app::open_db(&db_url).await.unwrap();
     let store = Arc::new(Mutex::new(Vec::new()));
@@ -393,4 +398,48 @@ async fn mcp_tools_respect_scopes() {
             .unwrap()
             .contains("messages:read")
     );
+}
+
+/// A contact POST arriving from `peer`, optionally with `X-Forwarded-For`.
+fn contact_from(peer: &str, forwarded_for: Option<&str>) -> Request<Body> {
+    let body = json!({"name":"Ada","email":"ada@example.com","message":"Hello there, nice site!"});
+    let mut b = Request::post("/api/contact").header(header::CONTENT_TYPE, "application/json");
+    if let Some(xff) = forwarded_for {
+        b = b.header("x-forwarded-for", xff);
+    }
+    let mut req = b.body(Body::from(body.to_string())).unwrap();
+    let addr: std::net::SocketAddr = format!("[{peer}]:40000").parse().unwrap();
+    req.extensions_mut()
+        .insert(axum::extract::ConnectInfo(addr));
+    req
+}
+
+#[tokio::test]
+async fn forwarded_ip_is_trusted_only_from_the_proxy() {
+    const PROXY: &str = "fc00::1";
+    let app = test_app_with(|cfg| cfg.trusted_proxies = vec![PROXY.into()]).await;
+
+    // Through the proxy: each visitor gets their own 3-message burst.
+    for visitor in ["203.0.113.7", "198.51.100.9"] {
+        for _ in 0..3 {
+            let (s, _, _) = call(&app, contact_from(PROXY, Some(visitor))).await;
+            assert_eq!(s, StatusCode::ACCEPTED, "visitor {visitor}");
+        }
+        let (s, _, _) = call(&app, contact_from(PROXY, Some(visitor))).await;
+        assert_eq!(
+            s,
+            StatusCode::TOO_MANY_REQUESTS,
+            "visitor {visitor} limited"
+        );
+    }
+
+    // Any other peer cannot pick its IP with the header: it is limited by
+    // its own address however many different values it sends.
+    for i in 0..3 {
+        let fake = format!("192.0.2.{i}");
+        let (s, _, _) = call(&app, contact_from("fc00::2", Some(&fake))).await;
+        assert_eq!(s, StatusCode::ACCEPTED);
+    }
+    let (s, _, _) = call(&app, contact_from("fc00::2", Some("192.0.2.99"))).await;
+    assert_eq!(s, StatusCode::TOO_MANY_REQUESTS);
 }
