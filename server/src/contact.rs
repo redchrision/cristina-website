@@ -121,6 +121,26 @@ pub async fn submit(State(state): State<AppState>, req: Request) -> ApiResult<im
     metrics::counter!("contact_messages_total", "outcome" => "stored").increment(1);
     tracing::info!(message_id = %public_id, "contact message stored");
 
+    if let Some(mailer) = Mailer::from_config(&state.cfg) {
+        let (name, email, message) = (
+            form.name.trim().to_owned(),
+            form.email.trim().to_owned(),
+            form.message.trim().to_owned(),
+        );
+        let id = public_id.clone();
+        tokio::spawn(async move {
+            match mailer.send(&name, &email, &message, &id).await {
+                Ok(()) => {
+                    metrics::counter!("contact_emails_total", "outcome" => "sent").increment(1)
+                }
+                Err(e) => {
+                    metrics::counter!("contact_emails_total", "outcome" => "failed").increment(1);
+                    tracing::warn!(error = %e, message_id = %id, "contact email failed (message is stored)");
+                }
+            }
+        });
+    }
+
     if let Some(url) = state.cfg.contact_webhook_url.clone() {
         let http = state.http.clone();
         let name = form.name.trim().to_owned();
@@ -133,6 +153,102 @@ pub async fn submit(State(state): State<AppState>, req: Request) -> ApiResult<im
         });
     }
     Ok(accepted)
+}
+
+/// Emails each contact message to the site owner. The message is always
+/// stored first, so a mail outage loses nothing.
+pub struct Mailer {
+    host: String,
+    port: u16,
+    username: String,
+    password: String,
+    from: String,
+    to: String,
+}
+
+impl Mailer {
+    pub fn from_config(cfg: &crate::config::ServeConfig) -> Option<Self> {
+        let host = cfg.smtp_host.clone().filter(|h| !h.trim().is_empty())?;
+        let to = cfg
+            .contact_notify_to
+            .clone()
+            .filter(|t| !t.trim().is_empty())?;
+        let from = cfg
+            .contact_notify_from
+            .clone()
+            .filter(|f| !f.trim().is_empty())
+            .unwrap_or_else(|| cfg.smtp_username.clone());
+        Some(Self {
+            host,
+            port: cfg.smtp_port,
+            username: cfg.smtp_username.clone(),
+            password: cfg.smtp_password.clone(),
+            from,
+            to,
+        })
+    }
+
+    /// Build the notification. The visitor's address goes in `Reply-To`, so
+    /// replying from the inbox answers them directly.
+    pub fn build(
+        &self,
+        name: &str,
+        email: &str,
+        message: &str,
+        id: &str,
+    ) -> anyhow::Result<lettre::Message> {
+        use lettre::message::{Mailbox, header::ContentType};
+        // Single line, bounded: the name ends up in a header.
+        let one_line = |s: &str, max: usize| -> String {
+            s.chars()
+                .map(|c| if c.is_control() { ' ' } else { c })
+                .take(max)
+                .collect()
+        };
+        let subject_name = one_line(name, 80);
+        let (name, email) = (one_line(name, 200), one_line(email, 254));
+        let mut builder = lettre::Message::builder()
+            .from(self.from.parse::<Mailbox>()?)
+            .to(self.to.parse::<Mailbox>()?)
+            .subject(format!("Website contact: {subject_name}"))
+            .header(ContentType::TEXT_PLAIN);
+        if let Ok(reply_to) = email.parse::<Mailbox>() {
+            builder = builder.reply_to(reply_to);
+        }
+        let body = format!(
+            "From: {name} <{email}>\nMessage id: {id}\n\n{message}\n\n-- \nSent by the contact form on cristinadelisle.xyz. Reply to this email to answer.\n"
+        );
+        Ok(builder.body(body)?)
+    }
+
+    pub async fn send(
+        &self,
+        name: &str,
+        email: &str,
+        message: &str,
+        id: &str,
+    ) -> anyhow::Result<()> {
+        use lettre::{
+            AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
+            transport::smtp::authentication::Credentials,
+        };
+        let msg = self.build(name, email, message, id)?;
+        let builder = if self.port == 465 {
+            AsyncSmtpTransport::<Tokio1Executor>::relay(&self.host)?
+        } else {
+            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.host)?
+        };
+        let transport = builder
+            .port(self.port)
+            .credentials(Credentials::new(
+                self.username.clone(),
+                self.password.clone(),
+            ))
+            .timeout(Some(std::time::Duration::from_secs(20)))
+            .build();
+        transport.send(msg).await?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize, sqlx::FromRow, ToSchema, JsonSchema)]
@@ -169,6 +285,50 @@ pub async fn purge_expired(db: &SqlitePool, retention_days: u32) -> sqlx::Result
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn mailer() -> Mailer {
+        Mailer {
+            host: "smtp.example.com".into(),
+            port: 587,
+            username: "owner@example.com".into(),
+            password: "x".into(),
+            from: "owner@example.com".into(),
+            to: "owner@example.com".into(),
+        }
+    }
+
+    #[test]
+    fn notification_replies_to_visitor_and_keeps_headers_single_line() {
+        let msg = mailer()
+            .build(
+                "Ada\r\nBcc: victim@example.com",
+                "ada@example.org",
+                "Hello!",
+                "id-1",
+            )
+            .unwrap();
+        let raw = String::from_utf8(msg.formatted()).unwrap();
+        let headers = raw.split("\r\n\r\n").next().unwrap();
+        assert!(headers.contains("Reply-To: ada@example.org"));
+        assert!(
+            !headers.lines().any(|l| l.starts_with("Bcc:")),
+            "no header injection: {headers}"
+        );
+        assert!(
+            !raw.lines().any(|l| l.starts_with("Bcc:")),
+            "the name stays on one line in the body too: {raw}"
+        );
+        assert!(raw.contains("Hello!"));
+    }
+
+    #[test]
+    fn notification_without_valid_reply_address_still_builds() {
+        let msg = mailer()
+            .build("Ada", "not an address", "Hello!", "id-2")
+            .unwrap();
+        let raw = String::from_utf8(msg.formatted()).unwrap();
+        assert!(!raw.contains("Reply-To"));
+    }
 
     #[test]
     fn email_check_is_permissive_but_sane() {

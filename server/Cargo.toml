@@ -13,6 +13,7 @@ clap = { version = "4", features = ["derive", "env"] }
 clickhouse = { version = "0.15", features = ["time"] }
 hex = "0.4"
 http = "1"
+lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-rustls", "aws-lc-rs", "rustls-platform-verifier"] }
 metrics = "0.24"
 metrics-exporter-prometheus = { version = "0.18", default-features = false }
 reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }

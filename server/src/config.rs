@@ -100,6 +100,34 @@ pub struct ServeConfig {
     #[arg(long, env = "CONTACT_WEBHOOK_URL")]
     pub contact_webhook_url: Option<String>,
 
+    /// SMTP server used to email contact messages to the site owner, e.g.
+    /// `smtp.gmail.com`. Email notification is off when unset.
+    #[arg(long, env = "SMTP_HOST")]
+    pub smtp_host: Option<String>,
+
+    /// 587 (STARTTLS) or 465 (implicit TLS).
+    #[arg(long, env = "SMTP_PORT", default_value_t = 587)]
+    pub smtp_port: u16,
+
+    #[arg(long, env = "SMTP_USERNAME", default_value = "")]
+    pub smtp_username: String,
+
+    #[arg(
+        long,
+        env = "SMTP_PASSWORD",
+        default_value = "",
+        hide_env_values = true
+    )]
+    pub smtp_password: String,
+
+    /// Where contact messages are emailed.
+    #[arg(long, env = "CONTACT_NOTIFY_TO")]
+    pub contact_notify_to: Option<String>,
+
+    /// Sender address of the notification (defaults to SMTP_USERNAME).
+    #[arg(long, env = "CONTACT_NOTIFY_FROM")]
+    pub contact_notify_from: Option<String>,
+
     /// Contact messages are deleted after this many days (GDPR storage
     /// limitation).
     #[arg(long, env = "CONTACT_RETENTION_DAYS", default_value_t = 180)]
