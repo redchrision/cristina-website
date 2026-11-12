@@ -1055,7 +1055,7 @@ const LEGAL = {
     title: "Mentions légales & confidentialité",
     sections: [
       ["Éditeur du site", "Ce site est édité par Cristina DeLisle, à titre personnel. Directrice de la publication : Cristina DeLisle. Contact : hello@cristinadelisle.xyz."],
-      ["Hébergement", "Porkbun LLC, 21370 SW Langer Farms Parkway, Suite 142-429, Sherwood, OR 97140, États-Unis. Téléphone : +1 855 767 5286. porkbun.com"],
+      ["Hébergement", "OVH Hosting Limited (groupe OVHcloud), Block 3, Harcourt Centre, Harcourt Road, Dublin 2, D02 A339, Irlande. Numéro d'immatriculation : 468585. ovhcloud.com. Les serveurs sont situés au Canada (centre de données de Beauharnois, Québec), pays reconnu par la Commission européenne comme assurant un niveau adéquat de protection des données."],
       ["Propriété intellectuelle", "Sauf mention contraire, les contenus de ce site (textes, visuels, code) sont la propriété de leur auteure. Les projets open source cités sont distribués sous leurs licences respectives."],
       ["Données personnelles (RGPD)", "Le formulaire de contact collecte votre nom, votre adresse e-mail et votre message, dans le seul but de répondre à votre demande (base légale : intérêt légitime). Ces données sont conservées le temps du traitement de votre demande et ne sont ni cédées ni utilisées à d'autres fins. Vous disposez d'un droit d'accès, de rectification et d'effacement, que vous pouvez exercer en écrivant à hello@cristinadelisle.xyz. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr)."],
       ["Cookies", "Ce site n'utilise ni cookies ni traceurs. Aucun outil d'analyse d'audience n'est installé."],
@@ -1065,7 +1065,7 @@ const LEGAL = {
     title: "Legal notice & privacy",
     sections: [
       ["Site publisher", "This site is published by Cristina DeLisle, in a personal capacity. Publication director: Cristina DeLisle. Contact: hello@cristinadelisle.xyz."],
-      ["Hosting", "Porkbun LLC, 21370 SW Langer Farms Parkway, Suite 142-429, Sherwood, OR 97140, United States. Phone: +1 855 767 5286. porkbun.com"],
+      ["Hosting", "OVH Hosting Limited (OVHcloud group), Block 3, Harcourt Centre, Harcourt Road, Dublin 2, D02 A339, Ireland. Company number: 468585. ovhcloud.com. The servers are located in Canada (Beauharnois data centre, Quebec), a country recognised by the European Commission as providing an adequate level of data protection."],
       ["Intellectual property", "Unless stated otherwise, the contents of this site (texts, visuals, code) are the property of their author. The open-source projects mentioned are distributed under their respective licences."],
       ["Personal data (GDPR)", "The contact form collects your name, email address and message, solely to answer your request (legal basis: legitimate interest). This data is kept for the time needed to handle your request and is neither shared nor used for other purposes. You have rights of access, rectification and erasure, which you can exercise by writing to hello@cristinadelisle.xyz. You may also lodge a complaint with the CNIL (cnil.fr)."],
       ["Cookies", "This site uses no cookies and no trackers. No analytics tool is installed."],
