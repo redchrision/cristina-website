@@ -10,6 +10,12 @@
 
 services:
   site:
+    # The public deployment measures audience with the built-in cookieless
+    # beacon (see web/src/api.ts and the legal notice).
+    build:
+      context: .
+      args:
+        VITE_ANALYTICS: "on"
     network_mode: host
     ports: !reset []
     environment:
