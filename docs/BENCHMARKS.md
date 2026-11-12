@@ -3,7 +3,31 @@
 Measured on 2026-11-09 with the release build, using the `loadgen` crate in
 this repository. Raw output is in [`bench-results/`](bench-results/).
 
-## Setup
+## Live server: OVHcloud VPS (12 November 2026)
+
+The production deployment, measured in place with the same `loadgen`.
+
+| | |
+|---|---|
+| Machine | OVHcloud VPS-3: 6 vCPU, 12 GB RAM, NVMe, Beauharnois (Canada) |
+| Topology | `site-server`, ClickHouse 24.8, Caddy and the load generator on the same VPS; `loadgen` calls the site directly on `127.0.0.1:8080` (Caddy/TLS not in the path) |
+| Build | Release Docker image from `main`, default ingest settings |
+
+| Test | Throughput | p50 | p99 | p99.9 | Result |
+|---|---:|---:|---:|---:|---|
+| Events, open loop, 2 000 req/s × 100 | **200 000 events/s** | 2.0 ms | **8.6 ms** | 14.5 ms | all `202` |
+| Events, open loop, 4 000 req/s × 100 offered | 174 000 events/s accepted | 4.3 ms | 28.7 ms | 67.0 ms | 56 % shed with `503` + `Retry-After` |
+| Content `GET /v1/projects`, 64 workers | 34 756 req/s | 1.8 ms | 4.0 ms | 7.3 ms | all `200` |
+| Stats `GET /v1/stats/top-paths?days=30`, 16 workers | 684 req/s | 22 ms | 56 ms | 109 ms | all `200` |
+
+So the live server sustains about **200k events/s with no errors at p99
+under 9 ms**. Beyond that the bounded queue fills and the API sheds the excess
+explicitly while latency stays bounded: the ClickHouse writer is the
+bottleneck, which is what the scaling notes at the end of this page address.
+
+## Development container (9 November 2026)
+
+### Setup
 
 | | |
 |---|---|
@@ -16,9 +40,9 @@ Because the load generator and ClickHouse compete for the same CPUs as the
 server, these numbers are a **floor**, not a ceiling. They are benchmark
 numbers on one machine, not production traffic.
 
-## Results
+### Results
 
-### Event ingestion, open loop (fixed arrival rate)
+#### Event ingestion, open loop (fixed arrival rate)
 
 `POST /v1/events`, 100 events per request, 30 s measured after a 3 s warm-up.
 Latency is measured from the *scheduled* send time, so it is not hidden by
@@ -36,7 +60,7 @@ ClickHouse row count after the runs matched `ingest_events_accepted_total`
 exactly (16 000 000 accepted = 16 000 000 written = 16 000 000 rows): no event
 that got a `202` was lost. Flushes averaged 20 000 rows and 49 ms each.
 
-### Event ingestion, overload (closed loop, 32 workers)
+#### Event ingestion, overload (closed loop, 32 workers)
 
 Pushing as fast as possible (32 concurrent clients, 100 events per request)
 saturates the ClickHouse writer. The bounded queue fills, and the API
@@ -49,7 +73,7 @@ saturates the ClickHouse writer. The bounded queue fills, and the API
 Accepted events were still all written (6 100 000 accepted = 6 100 000 rows).
 Latency stays flat under overload because handlers never wait on ClickHouse.
 
-### Content API (closed loop, 64 workers)
+#### Content API (closed loop, 64 workers)
 
 `GET /v1/projects` (JSON serialisation of the embedded content, with auth and
 rate limiting on every call):
@@ -58,7 +82,7 @@ rate limiting on every call):
 |---:|---:|---:|---:|
 | 40 000 | 1.5 ms | 3.5 ms | 4.9 ms |
 
-### Stats query (closed loop, 16 workers)
+#### Stats query (closed loop, 16 workers)
 
 `GET /v1/stats/top-paths?days=30` after ingesting 24.25 M raw events. Queries
 read the `events_daily` rollup (500 rows), filled by a materialized view at

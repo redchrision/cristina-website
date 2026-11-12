@@ -18,10 +18,10 @@ ingests privacy-preserving analytics events into ClickHouse.
                      └────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Numbers** (release build, 4 shared vCPUs, details in
-[docs/BENCHMARKS.md](docs/BENCHMARKS.md)): **250 000 events/s** ingested at
-**p99 7.1 ms** with zero loss; 40 000 req/s on content reads at p99 3.5 ms;
-explicit `503` load shedding instead of unbounded memory under overload.
+**Numbers** (details in [docs/BENCHMARKS.md](docs/BENCHMARKS.md)): on the live
+6-vCPU OVHcloud VPS, **200 000 events/s** ingested at **p99 8.6 ms** with no
+errors, and 34 756 req/s on content reads at p99 4 ms. Under overload the API
+sheds load with explicit `503`s instead of growing memory.
 
 ## Repository layout
 
