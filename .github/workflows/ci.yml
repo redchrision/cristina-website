@@ -55,6 +55,9 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
+      # Each binary must build on its own, not only thanks to features
+      # another workspace member enables.
+      - run: cargo check --locked -p loadgen
 
   image:
     name: Docker image
