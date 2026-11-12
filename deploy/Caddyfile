@@ -1,0 +1,15 @@
+# HTTPS in front of site-server. Caddy obtains and renews Let's Encrypt
+# certificates automatically, redirects HTTP to HTTPS, and forwards the
+# visitor's address in X-Forwarded-For (trusted by site-server through
+# TRUSTED_PROXIES=127.0.0.1).
+{
+	email {$ACME_EMAIL}
+}
+
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+{$SITE_DOMAIN} {
+	reverse_proxy 127.0.0.1:8080
+}

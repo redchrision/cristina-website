@@ -1,0 +1,37 @@
+# For a VPS with its own public IP (e.g. OVHcloud): Caddy terminates HTTPS on
+# ports 80/443 and forwards to the site on localhost.
+#
+# Both run on the host network: Caddy sees visitors' real addresses (IPv4 and
+# IPv6), and the site sees Caddy as 127.0.0.1, which it trusts for
+# X-Forwarded-For. The site itself only listens on localhost.
+#
+# Enable it by adding this line to .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.vps.yml
+
+services:
+  site:
+    network_mode: host
+    ports: !reset []
+    environment:
+      BIND: 127.0.0.1:8080
+      METRICS_BIND: 127.0.0.1:9090
+      CLICKHOUSE_URL: http://127.0.0.1:8123
+      TRUSTED_PROXIES: 127.0.0.1
+      HSTS: "true"
+
+  caddy:
+    image: caddy:2.10.2
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?set SITE_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env (Let's Encrypt account email)}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [site]
+
+volumes:
+  caddy-data:
+  caddy-config:

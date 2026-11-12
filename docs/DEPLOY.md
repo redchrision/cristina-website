@@ -28,6 +28,37 @@ After that, every merge into `main` updates the live site within a few
 minutes. To redeploy by hand: GitHub → Actions → *Static site (Porkbun)* →
 *Run workflow*.
 
+## Full server on a VPS (e.g. OVHcloud)
+
+A VPS with its own public IP runs everything, with
+[Caddy](https://caddyserver.com) in front for automatic HTTPS
+(`docker-compose.vps.yml`, `deploy/Caddyfile`).
+
+```bash
+# as root on a fresh Ubuntu 24.04 VPS (no system upgrade needed for this)
+curl -fsSL https://get.docker.com | sh
+git clone https://github.com/redchrision/cristina-website.git /opt/cristina-website
+cd /opt/cristina-website
+cat > .env <<EOT
+CLICKHOUSE_PASSWORD=$(openssl rand -hex 24)
+PUBLIC_HOSTS=cristinadelisle.xyz,www.cristinadelisle.xyz
+COMPOSE_FILE=docker-compose.yml:docker-compose.vps.yml
+SITE_DOMAIN=cristinadelisle.xyz
+ACME_EMAIL=hello@cristinadelisle.xyz
+EOT
+chmod 600 .env
+docker compose up -d --build
+```
+
+Then point the domain's DNS (`A` record for `@` and `www`, plus `AAAA` if the
+VPS has IPv6) to the VPS. Caddy gets the certificate as soon as DNS resolves
+to it. Only ports 22, 80 and 443 need to be reachable; the site (8080),
+ClickHouse (8123) and metrics (9090) listen on localhost only.
+
+**Contact emails:** add the `SMTP_*` and `CONTACT_NOTIFY_TO` variables from
+`.env.example`, then `docker compose up -d`. Each message is stored first and
+then emailed, with the visitor in `Reply-To`.
+
 ## Full server behind a reverse proxy (cjdns)
 
 When a separate machine terminates HTTPS and forwards visitors to this server
